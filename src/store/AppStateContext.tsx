@@ -15,6 +15,8 @@ type AppState = {
   notificationsAsked: boolean;
   setName: (name: string) => void;
   completeOnboarding: () => void;
+  /** „Pokaż wprowadzenie ponownie” / „Usuń wszystkie dane” - cofa flagę ukończenia onboardingu. */
+  resetOnboarding: () => void;
   setNotificationsAsked: (asked: boolean) => void;
 };
 
@@ -51,6 +53,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(STORAGE_KEYS.onboardingDone, '1').catch(() => {});
   }, []);
 
+  const resetOnboarding = useCallback(() => {
+    setOnboardingDone(false);
+    AsyncStorage.setItem(STORAGE_KEYS.onboardingDone, '0').catch(() => {});
+  }, []);
+
   const setNotificationsAsked = useCallback((asked: boolean) => {
     setNotificationsAskedState(asked);
     AsyncStorage.setItem(STORAGE_KEYS.notificationsAsked, asked ? '1' : '0').catch(() => {});
@@ -58,7 +65,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppStateContext.Provider
-      value={{ ready, name, onboardingDone, notificationsAsked, setName, completeOnboarding, setNotificationsAsked }}
+      value={{
+        ready,
+        name,
+        onboardingDone,
+        notificationsAsked,
+        setName,
+        completeOnboarding,
+        resetOnboarding,
+        setNotificationsAsked,
+      }}
     >
       {children}
     </AppStateContext.Provider>

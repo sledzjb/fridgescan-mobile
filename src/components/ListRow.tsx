@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, View, Image, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import { AppText } from './AppText';
@@ -84,10 +84,17 @@ export function ListRow({
 }
 
 function Thumbnail({ uri, letter, size }: { uri?: string; letter?: string; size: number }) {
-  if (uri) {
+  const [failed, setFailed] = useState(false);
+
+  if (uri && !failed) {
     return (
       <View style={[styles.thumb, { width: size, height: size, backgroundColor: colors.white }]}>
-        <Image source={{ uri }} style={{ width: size, height: size }} resizeMode="contain" />
+        <Image
+          source={{ uri }}
+          style={{ width: size, height: size }}
+          resizeMode="contain"
+          onError={() => setFailed(true)}
+        />
       </View>
     );
   }

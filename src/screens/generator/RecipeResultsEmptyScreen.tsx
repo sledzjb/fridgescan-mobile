@@ -59,7 +59,7 @@ export function RecipeResultsEmptyScreen({ navigation, route }: Props) {
           <AppText variant="h3">Nic nie pasuje do wszystkich czterech filtrów</AppText>
           {suggestion && (
             <AppText variant="caption" color={colors.mute} style={styles.suggestionText}>
-              {`Najbardziej ograniczające jest »${suggestion.currentValue}« — po jego zdjęciu mamy ${suggestion.resultCount} ${pluralizePl(
+              {`Najbardziej ograniczające jest »${suggestion.currentValue}« - po jego zdjęciu mamy ${suggestion.resultCount} ${pluralizePl(
                 suggestion.resultCount,
                 ['propozycję', 'propozycje', 'propozycji']
               )}.`}

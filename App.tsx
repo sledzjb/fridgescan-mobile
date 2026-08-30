@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAppFonts } from './src/theme';
+import { WebPhoneFrame } from './src/WebPhoneFrame';
 import { AppStateProvider, useAppState } from './src/store/AppStateContext';
 import { useProductsStore } from './src/store/useProductsStore';
 import { useFavoritesStore } from './src/store/useFavoritesStore';
@@ -48,10 +50,24 @@ function AppContent() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AppStateProvider>
-        <AppContent />
-      </AppStateProvider>
-    </SafeAreaProvider>
+    <WebPhoneFrame>
+      <SafeAreaProvider style={styles.root}>
+        <AppStateProvider>
+          <AppContent />
+        </AppStateProvider>
+      </SafeAreaProvider>
+    </WebPhoneFrame>
   );
 }
+
+const styles = StyleSheet.create({
+  // react-native-web: bez jawnego width/height 100% korzeń zamontowany przez
+  // AppRegistry nie zawsze dziedziczy wysokość z #root mimo flex:1 (patrz
+  // https://github.com/necolas/react-native-web/issues/940) - to psuło pełnoekranowe
+  // tło na Welcome.
+  root: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+});

@@ -52,6 +52,9 @@ export type MoreStackParamList = {
   History: undefined;
   Settings: undefined;
   ShoppingList: undefined;
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
+  Help: undefined;
 };
 
 export type MainTabParamList = {

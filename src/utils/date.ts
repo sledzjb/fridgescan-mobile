@@ -44,7 +44,7 @@ export function daysUntil(iso: IsoDate): number {
   return Math.round((target - today) / (1000 * 60 * 60 * 24));
 }
 
-/** „został 1 dzień” / „zostały N dni” / „termin minął” — treść badge terminu ważności. */
+/** „został 1 dzień” / „zostały N dni” / „termin minął” - treść badge terminu ważności. */
 export function expiryLabel(iso: IsoDate): string {
   const days = daysUntil(iso);
   if (days < 0) return 'termin minął';

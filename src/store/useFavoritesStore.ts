@@ -7,6 +7,7 @@ type FavoritesState = {
   hasHydrated: boolean;
   isFavorite: (id: number) => boolean;
   toggleFavorite: (id: number) => void;
+  clearAll: () => void;
 };
 
 export const useFavoritesStore = create<FavoritesState>()(
@@ -22,6 +23,7 @@ export const useFavoritesStore = create<FavoritesState>()(
             : [...state.recipeIds, id],
         }));
       },
+      clearAll: () => set({ recipeIds: [] }),
     }),
     {
       name: '@fridgescan/favorites',

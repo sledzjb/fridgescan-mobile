@@ -22,7 +22,7 @@ export function ShoppingListScreen({ navigation }: Props) {
   const [newName, setNewName] = useState('');
   const [newQty, setNewQty] = useState('');
 
-  // Odhaczone pozycje znikają dopiero, gdy opuszczamy ekran (skończyliśmy zakupy) —
+  // Odhaczone pozycje znikają dopiero, gdy opuszczamy ekran (skończyliśmy zakupy) -
   // podczas przeglądania listy zostają widoczne z przekreśleniem.
   useEffect(() => {
     return () => purgeChecked();

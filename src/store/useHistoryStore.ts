@@ -19,6 +19,7 @@ type HistoryState = {
   entries: HistoryEntry[];
   hasHydrated: boolean;
   addEntry: (entry: Omit<HistoryEntry, 'id' | 'timestamp'>) => void;
+  clearAll: () => void;
 };
 
 export const useHistoryStore = create<HistoryState>()(
@@ -31,6 +32,7 @@ export const useHistoryStore = create<HistoryState>()(
           entries: [{ ...entry, id: generateId(), timestamp: Date.now() }, ...state.entries],
         }));
       },
+      clearAll: () => set({ entries: [] }),
     }),
     {
       name: '@fridgescan/history',

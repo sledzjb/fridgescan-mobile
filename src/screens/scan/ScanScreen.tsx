@@ -95,7 +95,7 @@ export function ScanScreen({ navigation }: Props) {
     try {
       await cameraRef.current?.takePictureAsync({ quality: 0.5 });
     } catch {
-      // Rozpoznawanie jest zamockowane — nieudane realne ujęcie nie blokuje przepływu.
+      // Rozpoznawanie jest zamockowane - nieudane realne ujęcie nie blokuje przepływu.
     }
     runScan();
   };

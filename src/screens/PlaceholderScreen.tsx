@@ -17,7 +17,7 @@ export type PlaceholderScreenProps = {
   extraActions?: PlaceholderExtraAction[];
 };
 
-/** Zaślepka ekranu na czas budowy szkieletu nawigacji (krok 3) — treść dochodzi w kolejnych krokach. */
+/** Zaślepka ekranu na czas budowy szkieletu nawigacji (krok 3) - treść dochodzi w kolejnych krokach. */
 export function PlaceholderScreen({ title, stackName, extraActions }: PlaceholderScreenProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();

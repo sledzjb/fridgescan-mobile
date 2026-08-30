@@ -41,7 +41,7 @@ export function NameScreen({ navigation }: Props) {
           Jak się do Ciebie zwracać?
         </AppText>
         <AppText variant="bodyL" color={colors.mute} style={styles.description}>
-          Tylko imię, żeby aplikacja mówiła do Ciebie po ludzku. Zapisujemy je lokalnie — nie zakładamy konta i nic
+          Tylko imię, żeby aplikacja mówiła do Ciebie po ludzku. Zapisujemy je lokalnie - nie zakładamy konta i nic
           nie wysyłamy na serwer.
         </AppText>
         <Input
@@ -55,7 +55,7 @@ export function NameScreen({ navigation }: Props) {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.space6 }]}>
         <Button
-          label={trimmed ? `Cześć, ${trimmed} — dalej` : 'Dalej'}
+          label={trimmed ? `Cześć, ${trimmed} - dalej` : 'Dalej'}
           variant="primary"
           onPress={handleNext}
           style={styles.fullWidth}

@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { AppText } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useShoppingListStore } from '../../store/useShoppingListStore';
+import { pluralizePl } from '../../utils/pluralize';
 import { MoreStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<MoreStackParamList, 'More'>;
@@ -17,7 +18,7 @@ export function MoreScreen({ navigation }: Props) {
   const rows: { label: string; description: string; onPress?: () => void }[] = [
     {
       label: 'Lista zakupów',
-      description: `${missingCount} brakujących składników z przepisów`,
+      description: `${missingCount} ${pluralizePl(missingCount, ['brakujący składnik', 'brakujące składniki', 'brakujących składników'])} z przepisów`,
       onPress: () => navigation.navigate('ShoppingList'),
     },
     {
@@ -33,6 +34,7 @@ export function MoreScreen({ navigation }: Props) {
     {
       label: 'Pomoc i kontakt',
       description: 'FAQ, zgłoś błędne rozpoznanie',
+      onPress: () => navigation.navigate('Help'),
     },
   ];
 

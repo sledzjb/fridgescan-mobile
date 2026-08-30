@@ -7,8 +7,12 @@ import { AppText, Button, Card, ListRow, Badge, Stepper, Chip, Toast, useToast }
 import { colors, spacing, radius, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useAppState } from '../../store/AppStateContext';
 import { useProductsStore, Product } from '../../store/useProductsStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
+import { syncProductExpiryNotification, cancelNotification } from '../../services/notifications';
 import { daysUntil, expiryLabel } from '../../utils/date';
 import { formatQuantity } from '../../utils/quantity';
+import { pluralizePl } from '../../utils/pluralize';
+import { getIngredientThumbnailUrl } from '../../utils/ingredientImage';
 import { EXPIRY_SOON_THRESHOLD_DAYS } from '../../constants/fridge';
 import { FridgeStackParamList } from '../../navigation/types';
 
@@ -23,6 +27,8 @@ export function FridgeScreen({ navigation, route }: Props) {
   const setQuantity = useProductsStore((s) => s.setQuantity);
   const removeProduct = useProductsStore((s) => s.removeProduct);
   const restoreProduct = useProductsStore((s) => s.restoreProduct);
+  const updateProduct = useProductsStore((s) => s.updateProduct);
+  const expiringSoonEnabled = useSettingsStore((s) => s.notifications.expiringSoon);
   const [editMode, setEditMode] = useState(false);
   const toast = useToast();
   const [pendingUndo, setPendingUndo] = useState<{ product: Product; index: number } | null>(null);
@@ -33,6 +39,9 @@ export function FridgeScreen({ navigation, route }: Props) {
       toast.show(route.params.toastMessage);
       if (route.params.undoProduct && route.params.undoIndex !== undefined) {
         setPendingUndo({ product: route.params.undoProduct, index: route.params.undoIndex });
+      } else {
+        // Nowy toast bez danych do cofnięcia - nie pokazuj „Cofnij” dla nieaktualnego, poprzedniego usunięcia.
+        setPendingUndo(null);
       }
       navigation.setParams({ toastMessage: undefined, undoProduct: undefined, undoIndex: undefined });
     }
@@ -46,6 +55,7 @@ export function FridgeScreen({ navigation, route }: Props) {
   );
 
   const handleDelete = (product: Product) => {
+    cancelNotification(product.notificationId);
     const removed = removeProduct(product.id);
     if (!removed) return;
     setPendingUndo(removed);
@@ -55,6 +65,11 @@ export function FridgeScreen({ navigation, route }: Props) {
   const handleUndo = () => {
     if (pendingUndo) {
       restoreProduct(pendingUndo.product, pendingUndo.index);
+      if (pendingUndo.product.expiryDate) {
+        syncProductExpiryNotification(null, pendingUndo.product.name, pendingUndo.product.expiryDate, expiringSoonEnabled).then(
+          (notificationId) => updateProduct(pendingUndo.product.id, { notificationId })
+        );
+      }
       setPendingUndo(null);
     }
     toast.hide();
@@ -79,7 +94,9 @@ export function FridgeScreen({ navigation, route }: Props) {
               Lodówka
             </AppText>
             <AppText variant="meta" color={colors.mute} style={styles.meta}>
-              {isEmpty ? 'pusto · brak skanów' : `${products.length} produktów`}
+              {isEmpty
+                ? 'pusto · brak skanów'
+                : `${products.length} ${pluralizePl(products.length, ['produkt', 'produkty', 'produktów'])}`}
             </AppText>
           </View>
           {!isEmpty && (
@@ -123,6 +140,7 @@ export function FridgeScreen({ navigation, route }: Props) {
                     <ListRow
                       key={p.id}
                       title={p.name}
+                      thumbnailUri={getIngredientThumbnailUrl(p.name) ?? undefined}
                       thumbnailFallbackLetter={p.name}
                       thumbnailSize={36}
                       value={formatQuantity(p.qty, p.unit)}
@@ -145,6 +163,7 @@ export function FridgeScreen({ navigation, route }: Props) {
                     key={p.id}
                     title={p.name}
                     meta={p.category}
+                    thumbnailUri={getIngredientThumbnailUrl(p.name) ?? undefined}
                     thumbnailFallbackLetter={p.name}
                     onPress={editMode ? undefined : () => navigation.navigate('EditProduct', { productId: p.id })}
                     rightElement={
@@ -189,7 +208,7 @@ export function FridgeScreen({ navigation, route }: Props) {
                   Twoja lodówka jest pusta
                 </AppText>
                 <AppText variant="caption" color={colors.mute} style={styles.emptyDescription}>
-                  Zrób jedno zdjęcie wnętrza — AI rozpozna produkty i od razu podpowie przepisy. Możesz też wpisać
+                  Zrób jedno zdjęcie wnętrza - AI rozpozna produkty i od razu podpowie przepisy. Możesz też wpisać
                   kilka rzeczy ręcznie.
                 </AppText>
                 <Button

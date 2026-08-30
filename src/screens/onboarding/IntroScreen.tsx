@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, Image, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera, Sparkles, ChefHat, LucideIcon } from 'lucide-react-native';
 import { AppText } from '../../components';
 import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useAppState } from '../../store/AppStateContext';
@@ -11,22 +10,22 @@ import { OnboardingStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Intro'>;
 
-type Step = { icon: LucideIcon; title: string; description: string };
+type Step = { image: number; title: string; description: string };
 
 const STEPS: Step[] = [
   {
-    icon: Camera,
+    image: require('../../../assets/intro-1.webp'),
     title: 'Zrób jedno zdjęcie',
     description: 'Otwórz lodówkę i zrób zdjęcie w aplikacji albo wybierz je z galerii. Nie musisz nic wpisywać.',
   },
   {
-    icon: Sparkles,
+    image: require('../../../assets/intro-2.webp'),
     title: 'AI rozpoznaje produkty',
     description:
       'W kilka sekund dostajesz listę. Możesz poprawić ilości, dodać pominięte i usunąć błędne pozycje.',
   },
   {
-    icon: ChefHat,
+    image: require('../../../assets/intro-3.webp'),
     title: 'Gotujesz z tego, co masz',
     description:
       'Wybierz rodzaj posiłku, smak i poziom trudności. Pokażemy przepisy, w których minimum 3 składniki już masz.',
@@ -40,7 +39,6 @@ export function IntroScreen({ navigation }: Props) {
 
   const isLast = step === STEPS.length - 1;
   const current = STEPS[step];
-  const Icon = current.icon;
 
   const goToFridge = () => {
     completeOnboarding();
@@ -82,9 +80,7 @@ export function IntroScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.content}>
-        <View style={styles.illustration}>
-          <Icon size={48} color={colors.primary700} strokeWidth={1.5} />
-        </View>
+        <Image source={current.image} style={styles.illustration} resizeMode="cover" />
         <AppText variant="kicker" color={colors.primary700} style={styles.kicker}>
           {`KROK ${step + 1} Z ${STEPS.length}`}
         </AppText>
@@ -151,12 +147,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   illustration: {
+    width: '100%',
     height: 250,
     borderRadius: radius.xxl,
     backgroundColor: colors.primary50,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: spacing.space6,
+    overflow: 'hidden',
   },
   kicker: {
     marginBottom: spacing.space2,

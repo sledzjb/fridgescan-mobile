@@ -11,7 +11,7 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>;
 export function WelcomeScreen({ navigation }: Props) {
   return (
     <ImageBackground
-      source={require('../../../assets/welcome-bg.png')}
+      source={require('../../../assets/welcome-bg.webp')}
       style={styles.background}
       resizeMode="cover"
     >
@@ -35,6 +35,8 @@ export function WelcomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    width: '100%',
+    height: '100%',
   },
   overlay: {
     ...StyleSheet.absoluteFill,

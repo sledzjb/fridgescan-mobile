@@ -6,6 +6,8 @@ import { ArrowLeft } from 'lucide-react-native';
 import { AppText, Button, Input, Chip } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
+import { syncProductExpiryNotification } from '../../services/notifications';
 import { CATEGORIES, UNITS, EXPIRY_PRESETS } from '../../constants/fridge';
 import { addDaysIso, formatIsoToPl, parsePlToIso, IsoDate } from '../../utils/date';
 import { FridgeStackParamList } from '../../navigation/types';
@@ -26,6 +28,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function AddProductScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const addProduct = useProductsStore((s) => s.addProduct);
+  const updateProduct = useProductsStore((s) => s.updateProduct);
+  const expiringSoonEnabled = useSettingsStore((s) => s.notifications.expiringSoon);
 
   const [name, setName] = useState(route.params?.initialName ?? '');
   const [category, setCategory] = useState<string | null>(null);
@@ -56,13 +60,18 @@ export function AddProductScreen({ navigation, route }: Props) {
   const handleSubmit = () => {
     if (!canSubmit) return;
     const parsedQty = Math.max(0, Number(qty.replace(',', '.')) || 0);
-    addProduct({
+    const newProduct = addProduct({
       name: trimmedName,
       category: category ?? CATEGORIES[0],
       qty: parsedQty,
       unit,
       expiryDate: expiryIso,
     });
+    if (expiryIso) {
+      syncProductExpiryNotification(null, trimmedName, expiryIso, expiringSoonEnabled).then((notificationId) => {
+        if (notificationId) updateProduct(newProduct.id, { notificationId });
+      });
+    }
     navigation.navigate('Fridge', { toastMessage: `Dodano »${trimmedName}« do lodówki` });
   };
 
@@ -101,7 +110,7 @@ export function AddProductScreen({ navigation, route }: Props) {
           </View>
         </Section>
 
-        <Section title="DATA WAŻNOŚCI — OPCJONALNIE">
+        <Section title="DATA WAŻNOŚCI - OPCJONALNIE">
           <View style={styles.chipRow}>
             {EXPIRY_PRESETS.map((preset) => (
               <Chip key={preset.label} label={preset.label} onPress={() => applyPreset(preset.days)} />

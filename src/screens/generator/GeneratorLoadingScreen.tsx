@@ -34,7 +34,7 @@ export function GeneratorLoadingScreen({ navigation, route }: Props) {
       addHistoryEntry({
         type: 'generation',
         title: 'Generowanie propozycji',
-        description: `${filters.meal} · ${filters.taste} · ${filters.difficulty} — ${results.length} ${pluralizePl(results.length, ['wynik', 'wyniki', 'wyników'])}.`,
+        description: `${filters.meal} · ${filters.taste} · ${filters.difficulty} - ${results.length} ${pluralizePl(results.length, ['wynik', 'wyniki', 'wyników'])}.`,
         actionLabel: 'Powtórz z tymi filtrami',
       });
       if (results.length > 0) {
@@ -54,7 +54,7 @@ export function GeneratorLoadingScreen({ navigation, route }: Props) {
     <View style={[styles.screen, { paddingTop: insets.top + spacing.space6 }]}>
       <AppText variant="h1">Szukam przepisów</AppText>
       <AppText variant="meta" color={colors.mute} style={styles.meta}>
-        {`dopasowuję 842 przepisy do ${products.length} produktów…`}
+        {`dopasowuję 842 przepisy do ${products.length} ${pluralizePl(products.length, ['produktu', 'produktów', 'produktów'])}…`}
       </AppText>
 
       <View style={styles.progressTrack}>

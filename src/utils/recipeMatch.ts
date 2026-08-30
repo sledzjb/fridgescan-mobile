@@ -91,7 +91,7 @@ export type LoosestFilterSuggestion = {
 
 /**
  * Który z czterech filtrów, po zmianie na najkorzystniejszą alternatywną wartość
- * (pozostałe trzy bez zmian), daje najwięcej wyników. Używane na ekranie „Propozycje — brak wyników”.
+ * (pozostałe trzy bez zmian), daje najwięcej wyników. Używane na ekranie „Propozycje - brak wyników”.
  */
 export function findLoosestFilter(matches: RecipeMatch[], filters: GeneratorFilters): LoosestFilterSuggestion | null {
   let best: LoosestFilterSuggestion | null = null;

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, Input, Chip, Card } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { RECIPES } from '../../data/recipes';
+import { pluralizePl } from '../../utils/pluralize';
 import { RecipeListRow } from './RecipeListRow';
 import { RecipesStackParamList } from '../../navigation/types';
 
@@ -44,7 +45,9 @@ export function SearchRecipesScreen({ navigation }: Props) {
       </View>
 
       <AppText variant="meta" color={colors.mute} style={styles.counter}>
-        {trimmed ? `${results.length} wyników dla »${trimmed}«` : 'Wpisz nazwę przepisu lub składnika'}
+        {trimmed
+          ? `${results.length} ${pluralizePl(results.length, ['wynik', 'wyniki', 'wyników'])} dla »${trimmed}«`
+          : 'Wpisz nazwę przepisu lub składnika'}
       </AppText>
 
       {!trimmed && (

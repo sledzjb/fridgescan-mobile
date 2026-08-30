@@ -4,6 +4,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppText, Button, Input, Chip, BottomSheet } from '../../components';
 import { colors, spacing, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
+import { syncProductExpiryNotification, cancelNotification } from '../../services/notifications';
 import { CATEGORIES, UNITS } from '../../constants/fridge';
 import { formatIsoToPl, parsePlToIso, IsoDate } from '../../utils/date';
 import { FridgeStackParamList } from '../../navigation/types';
@@ -25,6 +27,7 @@ export function EditProductSheet({ navigation, route }: Props) {
   const product = useProductsStore((s) => s.products.find((p) => p.id === route.params.productId));
   const updateProduct = useProductsStore((s) => s.updateProduct);
   const removeProduct = useProductsStore((s) => s.removeProduct);
+  const expiringSoonEnabled = useSettingsStore((s) => s.notifications.expiringSoon);
 
   const [name, setName] = useState(product?.name ?? '');
   const [category, setCategory] = useState<string | null>(product?.category ?? null);
@@ -61,10 +64,14 @@ export function EditProductSheet({ navigation, route }: Props) {
       unit,
       expiryDate: expiryIso,
     });
+    syncProductExpiryNotification(product.notificationId, trimmedName, expiryIso, expiringSoonEnabled).then(
+      (notificationId) => updateProduct(product.id, { notificationId })
+    );
     navigation.navigate('Fridge', { toastMessage: `Zapisano zmiany w »${trimmedName}«` });
   };
 
   const handleDelete = () => {
+    cancelNotification(product.notificationId);
     const removed = removeProduct(product.id);
     navigation.navigate('Fridge', {
       toastMessage: `Usunięto »${product.name}« z lodówki`,

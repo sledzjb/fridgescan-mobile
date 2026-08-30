@@ -31,7 +31,7 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
- * Nie ma prawdziwego backendu rozpoznawania zdjęć (poza zakresem tego projektu) —
+ * Nie ma prawdziwego backendu rozpoznawania zdjęć (poza zakresem tego projektu) -
  * symulujemy odpowiedź AI z tym samym czasem i danymi co prototyp HTML.
  * Wynik losowany, żeby dało się przejść przez wszystkie trzy stany błędów w UI.
  */

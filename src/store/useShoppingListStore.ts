@@ -21,6 +21,7 @@ type ShoppingListState = {
   removeItem: (id: string) => void;
   /** Usuwa pozycje odhaczone w poprzedniej wizycie na ekranie. */
   purgeChecked: () => void;
+  clearAll: () => void;
 };
 
 export const useShoppingListStore = create<ShoppingListState>()(
@@ -57,6 +58,7 @@ export const useShoppingListStore = create<ShoppingListState>()(
       purgeChecked: () => {
         set((state) => ({ items: state.items.filter((i) => !i.checked) }));
       },
+      clearAll: () => set({ items: [] }),
     }),
     {
       name: '@fridgescan/shopping-list',

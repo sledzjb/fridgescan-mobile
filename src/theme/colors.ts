@@ -1,16 +1,16 @@
 export const colors = {
-  // Primary — zieleń
+  // Primary - zieleń
   primary900: '#173404', // welcome overlay, karta Premium
   primary700: '#3B6D11', // CTA, aktywny stan, linki, tekst „masz"
   primary50: '#EAF3DE', // tło badge dopasowania, numery kroków
 
-  // Secondary — koral
+  // Secondary - koral
   secondary700: '#993C1D', // tekst na chipie terminu, akcje destrukcyjne
   secondary500: '#D85A30', // „Oznacz jako wykonane", aktywne serduszko
   secondary300: '#F0997B', // ramka niepewnego rozpoznania, link „Cofnij" w toaście
   secondary50: '#FAECE7', // tło chipa terminu ważności
 
-  // Accent — turkus
+  // Accent - turkus
   accent900: '#04342C', // tło ekranu skanowania, brak zgody na kamerę
   accent600: '#1D9E75', // główna akcja „Zrób zdjęcie"
   accent400: '#5DCAA5', // linia skanu, ramki rozpoznanych produktów

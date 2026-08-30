@@ -7,6 +7,7 @@ import { Bell, Check } from 'lucide-react-native';
 import { AppText, Button, Card } from '../../components';
 import { colors, spacing, fontFamily } from '../../theme';
 import { useAppState } from '../../store/AppStateContext';
+import { requestNotificationPermission } from '../../services/notifications';
 import { OnboardingStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'NotificationsConsent'>;
@@ -30,19 +31,27 @@ export function NotificationsConsentScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { completeOnboarding, setNotificationsAsked } = useAppState();
 
-  const goToFridge = () => {
+  const goToFridge = (toastMessage?: string) => {
     completeOnboarding();
     navigation.getParent()?.dispatch(
-      CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' }] })
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'MainTabs',
+            params: toastMessage
+              ? { screen: 'FridgeTab', params: { screen: 'Fridge', params: { toastMessage } } }
+              : undefined,
+          },
+        ],
+      })
     );
   };
 
-  // Rzeczywiste wywołanie systemowego dialogu (expo-notifications) i toast
-  // potwierdzenia dochodzą w kroku 9 — tu zapisujemy tylko, że użytkownik
-  // podjął decyzję, żeby ekran nie pojawiał się ponownie.
-  const handleEnable = () => {
+  const handleEnable = async () => {
     setNotificationsAsked(true);
-    goToFridge();
+    const granted = await requestNotificationPermission();
+    goToFridge(granted ? 'Powiadomienia włączone' : undefined);
   };
 
   const handleSkip = () => {

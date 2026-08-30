@@ -11,6 +11,8 @@ export type Product = {
   qty: number;
   unit: string;
   expiryDate: IsoDate | null;
+  /** Id zaplanowanego powiadomienia o kończącym się terminie (expo-notifications), jeśli jakieś jest aktywne. */
+  notificationId?: string | null;
 };
 
 export type NewProduct = Omit<Product, 'id'>;
@@ -23,6 +25,7 @@ type ProductsState = {
   removeProduct: (id: string) => { product: Product; index: number } | null;
   restoreProduct: (product: Product, index: number) => void;
   setQuantity: (id: string, qty: number) => void;
+  clearAll: () => void;
 };
 
 export const useProductsStore = create<ProductsState>()(
@@ -64,6 +67,8 @@ export const useProductsStore = create<ProductsState>()(
           products: state.products.map((p) => (p.id === id ? { ...p, qty: Math.max(0, qty) } : p)),
         }));
       },
+
+      clearAll: () => set({ products: [] }),
     }),
     {
       name: '@fridgescan/products',

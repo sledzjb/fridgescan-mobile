@@ -7,6 +7,7 @@ import { colors, alpha, radius, spacing, screenPaddingHorizontal, fontFamily } f
 import { useProductsStore } from '../../store/useProductsStore';
 import { daysUntil } from '../../utils/date';
 import { EXPIRY_SOON_THRESHOLD_DAYS } from '../../constants/fridge';
+import { pluralizePl } from '../../utils/pluralize';
 import { DEFAULT_FILTERS, GeneratorFilters, matchAllRecipes, filterRecipes } from '../../utils/recipeMatch';
 import { GeneratorStackParamList } from '../../navigation/types';
 
@@ -119,7 +120,7 @@ export function GeneratorScreen({ navigation }: Props) {
           </AppText>
           <AppText variant="body" style={styles.baseCardText}>
             {expiringSoonCount > 0
-              ? `${products.length} w lodówce, ${expiringSoonCount} z nich kończą się w ciągu 2 dni. Damy im priorytet.`
+              ? `${products.length} w lodówce, ${expiringSoonCount} z nich ${pluralizePl(expiringSoonCount, ['kończy się', 'kończą się', 'kończy się'])} w ciągu 2 dni. Damy im priorytet.`
               : `${products.length} w lodówce.`}
           </AppText>
         </Card>

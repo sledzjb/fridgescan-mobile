@@ -83,7 +83,7 @@ export function HistoryScreen({ navigation }: Props) {
 
       {entries.length === 0 && (
         <AppText variant="caption" color={colors.mute} style={styles.emptyText}>
-          Nic tu jeszcze nie ma — historia pojawi się po pierwszym skanie lub wygenerowaniu przepisów.
+          Nic tu jeszcze nie ma - historia pojawi się po pierwszym skanie lub wygenerowaniu przepisów.
         </AppText>
       )}
 

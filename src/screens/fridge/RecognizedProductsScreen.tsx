@@ -10,6 +10,7 @@ import { useHistoryStore } from '../../store/useHistoryStore';
 import { RecognizedItem } from '../../services/mockRecognition';
 import { generateId } from '../../utils/id';
 import { pluralizePl } from '../../utils/pluralize';
+import { getIngredientThumbnailUrl } from '../../utils/ingredientImage';
 import { CATEGORIES } from '../../constants/fridge';
 import { FridgeStackParamList } from '../../navigation/types';
 
@@ -56,7 +57,7 @@ export function RecognizedProductsScreen({ navigation, route }: Props) {
           : `Rozpoznano ${scannedCount} ${pluralizePl(scannedCount, ['produkt', 'produkty', 'produktów'])}.`,
       actionLabel: 'Otwórz listę',
     });
-    const message = toSave.length === 1 ? 'Zapisano 1 produkt do lodówki' : `Zapisano ${toSave.length} produktów do lodówki`;
+    const message = `Zapisano ${toSave.length} ${pluralizePl(toSave.length, ['produkt', 'produkty', 'produktów'])} do lodówki`;
     navigation.navigate('Fridge', { toastMessage: message });
   };
 
@@ -70,7 +71,7 @@ export function RecognizedProductsScreen({ navigation, route }: Props) {
           </AppText>
         </Pressable>
         <AppText variant="h1" style={styles.title}>
-          {`Rozpoznano ${items.length} produktów`}
+          {`Rozpoznano ${items.length} ${pluralizePl(items.length, ['produkt', 'produkty', 'produktów'])}`}
         </AppText>
         <AppText variant="caption" color={colors.mute} style={styles.description}>
           Popraw ilości, usuń błędne pozycje, dodaj to, czego AI nie zauważyła. Poprawki uczą model Twoich zwyczajów.
@@ -138,6 +139,7 @@ function RecognizedRow({
             <Input placeholder="Nazwa produktu" value={item.name} onChangeText={onChangeName} autoFocus style={styles.inlineInput} />
           ) : undefined
         }
+        thumbnailUri={item.name ? getIngredientThumbnailUrl(item.name) ?? undefined : undefined}
         thumbnailFallbackLetter={item.name || '?'}
         thumbnailSize={36}
         meta={item.name === '' ? undefined : metaText}

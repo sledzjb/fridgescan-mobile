@@ -40,7 +40,7 @@ export function ScanErrorScreen({ navigation }: Props) {
             Rozpoznawanie nie zadziałało
           </AppText>
           <AppText variant="caption" color={colors.mute} style={styles.description}>
-            Brak połączenia z serwerem rozpoznawania. Zdjęcie zostało zapisane lokalnie — spróbujemy ponownie, gdy
+            Brak połączenia z serwerem rozpoznawania. Zdjęcie zostało zapisane lokalnie - spróbujemy ponownie, gdy
             wróci internet.
           </AppText>
 

@@ -42,7 +42,7 @@ export function FavoritesScreen({ navigation }: Props) {
               Nic tu jeszcze nie ma
             </AppText>
             <AppText variant="caption" color={colors.mute} style={styles.emptyDescription}>
-              Tapnij serduszko na ekranie przepisu — wróci tu razem ze składnikami i krokami, dostępny bez
+              Tapnij serduszko na ekranie przepisu - wróci tu razem ze składnikami i krokami, dostępny bez
               internetu.
             </AppText>
             <Button label="Znajdź pierwszy przepis" variant="primary" onPress={goToRecipes} style={styles.fullWidth} />

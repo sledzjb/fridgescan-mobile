@@ -21,6 +21,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "experiments": {
+      "baseUrl": "/fridgescan-mobile"
+    },
     "plugins": [
       "expo-font",
       "expo-splash-screen",
@@ -34,6 +37,12 @@
         "expo-image-picker",
         {
           "photosPermission": "FridgeScan potrzebuje dostępu do zdjęć, żeby wybrać fotografię lodówki z galerii."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#3B6D11"
         }
       ]
     ]
