@@ -57,6 +57,7 @@ export function NameScreen({ navigation }: Props) {
         <Button
           label={trimmed ? `Cześć, ${trimmed} - dalej` : 'Dalej'}
           variant="primary"
+          disabled={!trimmed}
           onPress={handleNext}
           style={styles.fullWidth}
         />
