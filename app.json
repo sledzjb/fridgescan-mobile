@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "fridgescan-scaffold",
+    "slug": "fridgescan-scaffold",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-splash-screen",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FridgeScan używa aparatu, żeby zrobić zdjęcie wnętrza lodówki i rozpoznać produkty."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FridgeScan potrzebuje dostępu do zdjęć, żeby wybrać fotografię lodówki z galerii."
+        }
+      ]
+    ]
+  }
+}

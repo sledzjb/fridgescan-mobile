@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:#D3D1C7;font-family:Outfit,system-ui,sans-serif}
+a{color:#3B6D11}a:hover{color:#3B6D11}
+@keyframes scanline{0%{transform:translateY(0)}100%{transform:translateY(260px)}}
+</style></helmet>
+
+<div style="display:flex;gap:44px;padding:40px 44px;align-items:flex-start;font-family:Outfit,system-ui,sans-serif;color:#2C2C2A">
+
+<div style="width:212px;flex:none;position:sticky;top:40px">
+  <div style="font:600 15px/1.2 Outfit,sans-serif;letter-spacing:-.01em">FridgeScan</div>
+  <div style="font:400 12px/1.45 Outfit,sans-serif;color:#888780;margin-top:5px">Klikalny prototyp. Przejdź przepływ od welcome screen albo skocz do wybranego ekranu.</div>
+  <div style="margin-top:18px;display:flex;flex-direction:column;gap:2px;max-height:calc(100vh - 180px);overflow:auto">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="15">
+      <div onClick="{{ n.pick }}" style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:9px;background:{{ n.bg }};cursor:pointer">
+        <span style="font:500 10.5px/1 'IBM Plex Mono',monospace;color:{{ n.num }};width:16px;flex:none">{{ n.i }}</span>
+        <span style="font:500 12.5px/1.2 Outfit,sans-serif;color:{{ n.fg }}">{{ n.label }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#FFFFFF;font-family:Outfit,system-ui,sans-serif;color:#2C2C2A">
+
+<sc-if value="{{ s.welcome }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;position:relative;background:#173404;display:flex;flex-direction:column;gap:36px;padding:64px 28px 44px;overflow:hidden">
+  <div style="position:absolute;inset:0"><image-slot id="welcome-bg" shape="rect" fit="cover" src="./welcome-bg.png" placeholder="Przeciągnij zdjęcie: wnętrze lodówki / świeże warzywa (pion 3:4)"></image-slot></div>
+  <div style="position:absolute;inset:0;background:rgba(20,20,19,.72);pointer-events:none"></div>
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+    <div style="width:86px;height:86px;border-radius:26px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center">
+      <div style="width:34px;height:44px;border:2.5px solid #fff;border-radius:8px;position:relative">
+        <div style="position:absolute;left:-2.5px;right:-2.5px;top:15px;height:2.5px;background:#fff"></div>
+      </div>
+    </div>
+    <h1 style="font:600 40px/1.08 Outfit,sans-serif;color:#fff;margin:28px 0 0;letter-spacing:-.03em">FridgeScan</h1>
+    <div style="font:400 16px/1.5 Outfit,sans-serif;color:rgba(255,255,255,.78);margin-top:12px;max-width:270px">Zrób zdjęcie lodówki. Dostaniesz przepisy z tego, co już masz.</div>
+  </div>
+  <div style="position:relative;display:flex;flex-direction:column;gap:10px">
+    <div onClick="{{ goName }}" style="background:#fff;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer">Zaczynamy</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.name }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;padding:76px 24px 40px;background:#F1EFE8">
+  <div onClick="{{ goWelcome }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">←</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#3B6D11">Zanim zaczniemy</div>
+    <h2 style="font:600 29px/1.15 Outfit,sans-serif;margin:11px 0 0;letter-spacing:-.02em">Jak się do Ciebie zwracać?</h2>
+    <div style="font:400 15px/1.55 Outfit,sans-serif;color:#888780;margin-top:11px;text-wrap:pretty">Tylko imię, żeby aplikacja mówiła do Ciebie po ludzku. Zapisujemy je lokalnie — nie zakładamy konta i nic nie wysyłamy na serwer.</div>
+    <input value="{{ nameValue }}" onChange="{{ setName }}" placeholder="Twoje imię" style="margin-top:22px;width:100%;box-sizing:border-box;background:#fff;border:1px solid #D3D1C7;border-radius:15px;padding:16px 16px;font:500 17px/1.2 Outfit,sans-serif;color:#2C2C2A;outline:none" style-focus="border-color:#3B6D11">
+  </div>
+  <div onClick="{{ goIntro }}" style="background:#3B6D11;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#fff;cursor:pointer">{{ nameCta }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.intro }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;padding:64px 24px 40px;background:#F1EFE8">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div style="width:60px;flex:none"></div>
+    <div style="display:flex;gap:7px">
+      <sc-for list="{{ introDots }}" as="d" hint-placeholder-count="3">
+        <div style="width:{{ d.w }};height:7px;border-radius:99px;background:{{ d.bg }}"></div>
+      </sc-for>
+    </div>
+    <div onClick="{{ goFridge }}" style="width:60px;flex:none;text-align:right;font:500 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer;padding:6px 0">Pomiń</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div style="height:250px;position:relative">
+      <image-slot id="{{ intro.slotId }}" shape="rounded" radius="22" fit="cover" placeholder="{{ intro.slot }}"></image-slot>
+    </div>
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#3B6D11;margin-top:30px">{{ intro.kicker }}</div>
+    <h2 style="font:600 27px/1.18 Outfit,sans-serif;margin:11px 0 0;letter-spacing:-.02em">{{ intro.title }}</h2>
+    <div style="font:400 15px/1.55 Outfit,sans-serif;color:#888780;margin-top:11px;text-wrap:pretty">{{ intro.body }}</div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div onClick="{{ introBack }}" style="font:500 14.5px/1 Outfit,sans-serif;color:#888780;cursor:pointer;padding:14px 6px 14px 0">Cofnij</div>
+    <div onClick="{{ introNext }}" style="background:#2C2C2A;border-radius:15px;padding:14px 26px;font:600 14.5px/1 Outfit,sans-serif;color:#fff;cursor:pointer">{{ intro.cta }}</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.fridge }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">{{ greeting }}</div>
+      <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:8px 0 0;letter-spacing:-.02em">Lodówka</h1>
+      <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:7px">{{ fridgeCount }} · ostatni skan dziś 18:12</div>
+    </div>
+    <div onClick="{{ toggleEdit }}" style="font:500 13px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer;padding:6px 0">{{ editLabel }}</div>
+  </div>
+
+  <div style="display:flex;gap:9px;margin-top:16px">
+    <div onClick="{{ goScan }}" style="flex:1;background:#1D9E75;border-radius:16px;padding:14px;cursor:pointer" style-active="transform:scale(.985)">
+      <img src="https://unpkg.com/lucide-static@0.460.0/icons/camera.svg" alt="" style="width:22px;height:22px;filter:brightness(0) invert(1)">
+      <div style="font:600 14.5px/1.2 Outfit,sans-serif;color:#fff;margin-top:11px">Zrób zdjęcie</div>
+      <div style="font:400 11.5px/1.3 Outfit,sans-serif;color:rgba(255,255,255,.72);margin-top:3px">AI rozpozna produkty</div>
+    </div>
+    <div onClick="{{ goScan }}" style="flex:1;background:#fff;border:1px solid #D3D1C7;border-radius:16px;padding:14px;cursor:pointer">
+      <img src="https://unpkg.com/lucide-static@0.460.0/icons/image.svg" alt="" style="width:22px;height:22px">
+      <div style="font:600 14.5px/1.2 Outfit,sans-serif;margin-top:11px">Z galerii</div>
+      <div style="font:400 11.5px/1.3 Outfit,sans-serif;color:#888780;margin-top:3px">wybierz zdjęcie</div>
+    </div>
+    <div onClick="{{ goManual }}" style="flex:1;background:#fff;border:1px solid #D3D1C7;border-radius:16px;padding:14px;cursor:pointer">
+      <img src="https://unpkg.com/lucide-static@0.460.0/icons/pencil-line.svg" alt="" style="width:22px;height:22px">
+      <div style="font:600 14.5px/1.2 Outfit,sans-serif;margin-top:11px">Ręcznie</div>
+      <div style="font:400 11.5px/1.3 Outfit,sans-serif;color:#888780;margin-top:3px">wpisz produkt</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 9px">
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">Zużyj wkrótce</div>
+  </div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+    <sc-for list="{{ expiring }}" as="p" hint-placeholder-count="2">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #D3D1C7">
+        <div style="width:36px;height:36px;border-radius:10px;background-image:{{ p.img }};background-size:contain;background-repeat:no-repeat;background-position:center;background-color:{{ p.thumbBg }};flex:none;display:flex;align-items:center;justify-content:center"><span style="font:600 13px/1 Outfit,sans-serif;color:#3B6D11">{{ p.initial }}</span></div>
+        <div style="flex:1">
+          <div style="font:600 14.5px/1.2 Outfit,sans-serif">{{ p.name }}</div>
+          <div style="margin-top:6px;display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;background:{{ p.chipBg }};color:{{ p.color }};font:500 11px/1 Outfit,sans-serif">{{ p.days }}</div>
+        </div>
+        <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780">{{ p.qty }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:24px 0 9px">Wszystkie produkty</div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+    <sc-for list="{{ fridge }}" as="p" hint-placeholder-count="8">
+      <div onClick="{{ p.open }}" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+        <div style="width:34px;height:34px;border-radius:10px;background-image:{{ p.img }};background-size:contain;background-repeat:no-repeat;background-position:center;background-color:{{ p.thumbBg }};flex:none;display:flex;align-items:center;justify-content:center"><span style="font:600 13px/1 Outfit,sans-serif;color:#3B6D11">{{ p.initial }}</span></div>
+        <div style="flex:1">
+          <div style="font:600 14.5px/1.2 Outfit,sans-serif">{{ p.name }}</div>
+          <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:4px">{{ p.cat }}</div>
+        </div>
+        <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div onClick="{{ p.dec }}" style="width:30px;height:30px;border-radius:9px;background:#D3D1C7;font:500 16px/30px Outfit,sans-serif;text-align:center;cursor:pointer">−</div>
+            <div style="font:500 12.5px/1 'IBM Plex Mono',monospace;min-width:44px;text-align:center">{{ p.qty }}</div>
+            <div onClick="{{ p.inc }}" style="width:30px;height:30px;border-radius:9px;background:#D3D1C7;font:500 16px/30px Outfit,sans-serif;text-align:center;cursor:pointer">+</div>
+            <div onClick="{{ p.del }}" style="font:400 15px/1 Outfit,sans-serif;color:#993C1D;cursor:pointer;padding:0 2px">×</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ notEditing }}" hint-placeholder-val="{{ true }}">
+          <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780">{{ p.qty }}</div>
+        </sc-if>
+      </div>
+    </sc-for>
+    <div onClick="{{ goManual }}" style="padding:13px 14px;font:500 14px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer">+ Dodaj produkt ręcznie</div>
+  </div>
+
+  <div onClick="{{ goGenerator }}" style="margin-top:20px;background:#2C2C2A;border-radius:17px;padding:16px;text-align:center;cursor:pointer">
+    <span style="font:600 15.5px/1 Outfit,sans-serif;color:#fff">Generuj przepisy z tej lodówki</span>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.manual }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div onClick="{{ goFridge }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Lodówka</div>
+  <h1 style="font:600 26px/1.15 Outfit,sans-serif;margin:14px 0 20px;letter-spacing:-.02em">Dodaj produkt</h1>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin-bottom:9px">Nazwa</div>
+  <input value="{{ newName }}" onChange="{{ setNewName }}" placeholder="np. Pomidory" style="width:100%;box-sizing:border-box;background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:15px;font:500 16px/1.2 Outfit,sans-serif;color:#2C2C2A;outline:none" style-focus="border-color:#3B6D11">
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:22px 0 9px">Kategoria</div>
+  <div style="display:flex;flex-wrap:wrap;gap:7px">
+    <sc-for list="{{ newCats }}" as="c" hint-placeholder-count="7">
+      <div onClick="{{ c.pick }}" style="background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};border-radius:999px;padding:9px 14px;font:500 13px/1 Outfit,sans-serif;cursor:pointer">{{ c.label }}</div>
+    </sc-for>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:22px 0 9px">Ilość</div>
+  <div style="display:flex;gap:9px;align-items:stretch">
+    <input value="{{ newQty }}" onChange="{{ setNewQty }}" placeholder="1" style="width:96px;flex:none;box-sizing:border-box;background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:15px;font:500 16px/1.2 'IBM Plex Mono',monospace;color:#2C2C2A;outline:none;text-align:center" style-focus="border-color:#3B6D11">
+    <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap;align-content:center">
+      <sc-for list="{{ newUnits }}" as="u" hint-placeholder-count="5">
+        <div onClick="{{ u.pick }}" style="background:{{ u.bg }};color:{{ u.fg }};border:1px solid {{ u.bd }};border-radius:999px;padding:9px 13px;font:500 13px/1 Outfit,sans-serif;cursor:pointer">{{ u.label }}</div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:22px 0 9px">Data ważności — opcjonalnie</div>
+  <input value="{{ newDate }}" onChange="{{ setNewDate }}" placeholder="DD.MM.RRRR" style="width:100%;box-sizing:border-box;background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:15px;font:400 15.5px/1.2 'IBM Plex Mono',monospace;color:#2C2C2A;outline:none" style-focus="border-color:#3B6D11">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+    <sc-for list="{{ datePresets }}" as="d" hint-placeholder-count="4">
+      <div onClick="{{ d.pick }}" style="background:{{ d.bg }};color:{{ d.fg }};border:1px solid {{ d.bd }};border-radius:999px;padding:8px 13px;font:500 12.5px/1 Outfit,sans-serif;cursor:pointer">{{ d.label }}</div>
+    </sc-for>
+  </div>
+  <div style="font:400 12px/1.45 Outfit,sans-serif;color:#888780;margin-top:9px">{{ newDateHint }}</div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:22px 0 9px">Podpowiedzi AI</div>
+  <div style="display:flex;flex-wrap:wrap;gap:7px">
+    <sc-for list="{{ suggestions }}" as="g" hint-placeholder-count="6">
+      <div style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:8px 14px;font:500 13px/1 Outfit,sans-serif">{{ g.name }}</div>
+    </sc-for>
+  </div>
+
+  <div onClick="{{ saveNew }}" style="margin-top:24px;background:{{ newCtaBg }};border-radius:17px;padding:16px;text-align:center;cursor:pointer">
+    <span style="font:600 15.5px/1 Outfit,sans-serif;color:{{ newCtaFg }}">Dodaj do lodówki</span>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.scan }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;position:relative;background:#04342C;overflow:hidden">
+  <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#0F6E56 0 14px,#04342C 14px 28px)"></div>
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:400 11px/1.7 'IBM Plex Mono',monospace;color:rgba(255,255,255,.3);text-align:center">widok kamery<br>[ zdjęcie wnętrza lodówki ]</div>
+  <div style="position:absolute;top:72px;left:20px;right:20px;display:flex;align-items:center;gap:11px">
+    <div onClick="{{ goFridge }}" style="width:34px;height:34px;border-radius:999px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font:400 16px/1 Outfit,sans-serif;color:#fff;cursor:pointer">←</div>
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)">Skan lodówki</div>
+  </div>
+  <sc-if value="{{ scanning }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;top:170px;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#5DCAA5,transparent);animation:scanline 1.5s ease-in-out infinite alternate"></div>
+    <div style="position:absolute;top:212px;left:34px;border:1.5px solid #5DCAA5;border-radius:9px;padding:5px 9px;background:rgba(16,19,20,.55)"><span style="font:500 11px/1 'IBM Plex Mono',monospace;color:#5DCAA5">jajka · 96%</span></div>
+    <div style="position:absolute;top:308px;right:38px;border:1.5px solid #5DCAA5;border-radius:9px;padding:5px 9px;background:rgba(16,19,20,.55)"><span style="font:500 11px/1 'IBM Plex Mono',monospace;color:#5DCAA5">feta · 91%</span></div>
+    <div style="position:absolute;top:406px;left:92px;border:1.5px solid #F0997B;border-radius:9px;padding:5px 9px;background:rgba(16,19,20,.55)"><span style="font:500 11px/1 'IBM Plex Mono',monospace;color:#F0997B">szpinak? · 64%</span></div>
+  </sc-if>
+  <div style="position:absolute;left:20px;right:20px;bottom:50px;display:flex;flex-direction:column;align-items:center;gap:18px">
+    <div style="font:400 13px/1.45 Outfit,sans-serif;color:rgba(255,255,255,.72);text-align:center;max-width:250px">{{ scanHint }}</div>
+    <div style="display:flex;align-items:center;gap:26px">
+      <div onClick="{{ doScan }}" style="width:44px;height:44px;border-radius:11px;background:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 5px,rgba(255,255,255,.1) 5px 10px);cursor:pointer"></div>
+      <div onClick="{{ doScan }}" style="width:72px;height:72px;border-radius:999px;border:3px solid rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <div style="width:56px;height:56px;border-radius:999px;background:#fff"></div>
+      </div>
+      <div onClick="{{ goManual }}" style="width:44px;height:44px;border-radius:11px;background:rgba(255,255,255,.14);font:400 20px/44px Outfit,sans-serif;color:#fff;text-align:center;cursor:pointer">+</div>
+    </div>
+    <div style="font:400 11.5px/1 Outfit,sans-serif;color:rgba(255,255,255,.5)">galeria · zdjęcie · ręcznie</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.found }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div onClick="{{ goScan }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Skanuj ponownie</div>
+  <h1 style="font:600 26px/1.15 Outfit,sans-serif;margin:14px 0 6px;letter-spacing:-.02em">Rozpoznano 6 produktów</h1>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-bottom:16px">Popraw ilości, usuń błędne pozycje, dodaj to, czego AI nie zauważyła. Poprawki uczą model Twoich zwyczajów.</div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ found }}" as="f" hint-placeholder-count="6">
+      <div style="padding:12px 14px;border-bottom:1px solid #D3D1C7">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:36px;height:36px;border-radius:10px;background-image:{{ f.img }};background-size:contain;background-repeat:no-repeat;background-position:center;background-color:{{ f.thumbBg }};flex:none;display:flex;align-items:center;justify-content:center"><span style="font:600 13px/1 Outfit,sans-serif;color:#3B6D11">{{ f.initial }}</span></div>
+          <div style="flex:1">
+            <div style="font:600 14.5px/1.2 Outfit,sans-serif;color:{{ f.titleColor }}">{{ f.name }}</div>
+            <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:{{ f.metaColor }};margin-top:4px">{{ f.meta }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div onClick="{{ f.dec }}" style="width:29px;height:29px;border-radius:9px;background:#D3D1C7;font:500 15px/29px Outfit,sans-serif;text-align:center;cursor:pointer">−</div>
+            <div style="font:500 12px/1 'IBM Plex Mono',monospace;min-width:42px;text-align:center">{{ f.qty }}</div>
+            <div onClick="{{ f.inc }}" style="width:29px;height:29px;border-radius:9px;background:#D3D1C7;font:500 15px/29px Outfit,sans-serif;text-align:center;cursor:pointer">+</div>
+            <div onClick="{{ f.del }}" style="font:400 15px/1 Outfit,sans-serif;color:#993C1D;cursor:pointer;padding:0 2px">×</div>
+          </div>
+        </div>
+        <sc-if value="{{ f.needsCheck }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:7px;margin:10px 0 2px 48px">
+            <div onClick="{{ f.confirm }}" style="background:#EAF3DE;border-radius:999px;padding:7px 13px;font:500 12px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer">Tak, to szpinak</div>
+            <div onClick="{{ f.del }}" style="background:#D3D1C7;border-radius:999px;padding:7px 13px;font:500 12px/1 Outfit,sans-serif;cursor:pointer">Nie, usuń</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+    <div onClick="{{ goManual }}" style="padding:13px 14px;font:500 14px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer">+ Dodaj pominięty produkt</div>
+  </div>
+  <div onClick="{{ goFridge }}" style="margin-top:20px;background:#3B6D11;border-radius:17px;padding:16px;text-align:center;cursor:pointer">
+    <span style="font:600 15.5px/1 Outfit,sans-serif;color:#fff">Zapisz do lodówki</span>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.generator }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:0;letter-spacing:-.02em">Generator przepisów</h1>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:7px">Wybierz preferencje. Pokażemy tylko przepisy, w których co najmniej 3 składniki masz w lodówce.</div>
+
+  <div style="margin-top:22px;display:flex;flex-direction:column;gap:18px">
+    <sc-for list="{{ prefGroups }}" as="g" hint-placeholder-count="4">
+      <div>
+        <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin-bottom:9px">{{ g.label }}</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3">
+            <div onClick="{{ o.pick }}" style="flex:1;min-width:88px;text-align:center;padding:14px 8px;border-radius:15px;background:{{ o.bg }};color:{{ o.fg }};border:1px solid {{ o.bd }};font:{{ o.font }};cursor:pointer">{{ o.label }}</div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ g.hasNote }}" hint-placeholder-val="{{ false }}">
+          <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:7px">{{ g.note }}</div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="margin-top:22px;background:#fff;border:1px solid #D3D1C7;border-radius:16px;padding:14px">
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">Baza</div>
+    <div style="font:400 13px/1.45 Outfit,sans-serif;color:#888780;margin-top:7px">{{ fridgeCount }} w lodówce, 2 z nich kończą się w ciągu 2 dni. Damy im priorytet.</div>
+  </div>
+
+  <div onClick="{{ generate }}" style="margin-top:18px;background:#3B6D11;border-radius:17px;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer">
+    <span style="font:600 15.5px/1 Outfit,sans-serif;color:#fff">Generuj propozycje</span>
+    <span style="font:500 11.5px/1 'IBM Plex Mono',monospace;color:rgba(255,255,255,.6)">{{ matchCount }}</span>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.results }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 0 24px;background:#F1EFE8">
+  <div style="padding:0 20px">
+    <div onClick="{{ goGenerator }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Zmień preferencje</div>
+    <h1 style="font:600 26px/1.15 Outfit,sans-serif;margin:13px 0 5px;letter-spacing:-.02em">Propozycje</h1>
+    <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780">{{ countLabel }}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+      <sc-for list="{{ activePrefs }}" as="p" hint-placeholder-count="4">
+        <div style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:7px 13px;font:500 12px/1 Outfit,sans-serif">{{ p.label }}</div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="margin-top:16px;padding:0 20px;display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ recipes }}" as="r" hint-placeholder-count="5">
+      <div onClick="{{ r.open }}" style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;padding:13px;display:flex;gap:13px;align-items:center;cursor:pointer">
+        <div style="width:64px;height:64px;border-radius:14px;background-image:{{ r.img }};background-size:cover;background-position:center;background-color:#F1EFE8;flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 15.5px/1.25 Outfit,sans-serif;letter-spacing:-.01em">{{ r.title }}</div>
+          <div style="display:flex;gap:6px;margin-top:6px;font:400 11px/1 'IBM Plex Mono',monospace;color:#888780">
+            <span>{{ r.time }}</span><span>·</span><span>{{ r.diff }}</span><span>·</span><span>{{ r.have }}</span>
+          </div>
+          <div style="margin-top:7px;font:400 12px/1.35 Outfit,sans-serif;color:#888780">{{ r.uses }}</div>
+        </div>
+        <div style="flex:none;background:#EAF3DE;color:#3B6D11;border-radius:999px;padding:5px 9px;font:500 11px/1 'IBM Plex Mono',monospace;align-self:flex-start">{{ r.match }}</div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;padding:26px 20px;text-align:center">
+        <div style="font:600 15px/1.3 Outfit,sans-serif">Brak propozycji dla tych preferencji</div>
+        <div style="font:400 13px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px">Poluzuj jedno kryterium albo dodaj produkty do lodówki.</div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.detail }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;background:#fff">
+  <div style="padding:64px 20px 0">
+    <div onClick="{{ back }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Wróć</div>
+    <div style="display:flex;gap:14px;align-items:flex-start;margin-top:16px">
+      <div style="width:84px;height:84px;border-radius:18px;background-image:{{ currentImg }};background-size:cover;background-position:center;background-color:#F1EFE8;flex:none"></div>
+      <div style="flex:1">
+        <h1 style="font:600 23px/1.18 Outfit,sans-serif;margin:0;letter-spacing:-.02em">{{ current.title }}</h1>
+        <div style="display:flex;gap:6px;margin-top:8px;font:400 11px/1 'IBM Plex Mono',monospace;color:#888780">
+          <span>{{ current.time }}</span><span>·</span><span>{{ current.diff }}</span><span>·</span><span>{{ current.taste }}</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:#EAF3DE;border-radius:14px;padding:12px 14px;font:400 12.5px/1.45 Outfit,sans-serif;color:#3B6D11">{{ current.uses }}</div>
+
+    <div style="display:flex;align-items:center;gap:9px;margin:26px 0 10px">
+      <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">Wartości odżywcze</div>
+    </div>
+    <div style="display:flex;gap:7px">
+      <sc-for list="{{ nutrition }}" as="n" hint-placeholder-count="4">
+        <div style="flex:1;border:1px solid #D3D1C7;border-radius:13px;padding:11px 8px;text-align:center">
+          <div style="font:600 15px/1 Outfit,sans-serif">{{ n.v }}</div>
+          <div style="font:400 10.5px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:6px">{{ n.k }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:26px 0 10px">Składniki</div>
+    <div style="border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+      <sc-for list="{{ ingredients }}" as="i" hint-placeholder-count="5">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid #D3D1C7">
+          <span style="font:500 14px/1.2 Outfit,sans-serif;flex:1">{{ i.name }}</span>
+          <span style="font:400 12px/1 'IBM Plex Mono',monospace;color:#888780">{{ i.amount }}</span>
+          <span style="font:500 11px/1 'IBM Plex Mono',monospace;color:{{ i.color }};min-width:52px;text-align:right">{{ i.tag }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:26px 0 12px">Przygotowanie</div>
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+        <div style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:25px;height:25px;border-radius:999px;background:#EAF3DE;color:#3B6D11;font:500 11.5px/25px 'IBM Plex Mono',monospace;text-align:center;flex:none">{{ st.n }}</div>
+          <div style="font:400 14px/1.5 Outfit,sans-serif;color:#444441;text-wrap:pretty">{{ st.text }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;gap:9px;margin:26px 0 30px">
+      <div onClick="{{ openCooked }}" style="flex:1;background:#D85A30;border-radius:16px;padding:15px;text-align:center;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Oznacz jako wykonane</div>
+      <div onClick="{{ toggleFav }}" style="width:54px;border:1px solid #D3D1C7;border-radius:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;font:400 17px/1 Outfit,sans-serif;color:{{ favColor }}">♥</div>
+    </div>
+  </div>
+</div>
+<sc-if value="{{ cooked }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(44,44,42,.35);z-index:70"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;padding:20px 20px 44px;z-index:71">
+    <div style="width:36px;height:4px;border-radius:99px;background:#D3D1C7;margin:0 auto 18px"></div>
+    <div style="font:600 22px/1.18 Outfit,sans-serif;letter-spacing:-.02em">Uaktualnić lodówkę?</div>
+    <div style="font:400 13px/1.45 Outfit,sans-serif;color:#888780;margin-top:6px">Odejmiemy zużyte składniki. Możesz odznaczyć to, co zostało.</div>
+    <div style="margin-top:16px;border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+      <sc-for list="{{ consumed }}" as="c" hint-placeholder-count="4">
+        <div onClick="{{ c.toggle }}" style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+          <div style="width:21px;height:21px;border-radius:6px;border:1.5px solid {{ c.boxBd }};background:{{ c.boxBg }};color:#fff;font:500 12px/19px Outfit,sans-serif;text-align:center;flex:none">{{ c.mark }}</div>
+          <span style="flex:1;font:500 14px/1.2 Outfit,sans-serif">{{ c.name }}</span>
+          <span style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780">{{ c.delta }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div onClick="{{ toggleReminder }}" style="margin-top:12px;display:flex;align-items:center;gap:12px;background:#F1EFE8;border-radius:16px;padding:14px;cursor:pointer">
+      <div style="flex:1">
+        <div style="font:600 14px/1.2 Outfit,sans-serif">Przypomnij o uzupełnieniu</div>
+        <div style="font:400 12px/1.4 Outfit,sans-serif;color:#888780;margin-top:4px">Powiadomienie za 3 dni: jajka, szpinak, feta</div>
+      </div>
+      <div style="width:44px;height:26px;border-radius:99px;background:{{ swReminder }};position:relative;flex:none">
+        <div style="position:absolute;top:3px;left:{{ knobReminder }};width:20px;height:20px;border-radius:99px;background:#fff"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:16px">
+      <div onClick="{{ closeCooked }}" style="flex:none;padding:15px 18px;border:1px solid #D3D1C7;border-radius:16px;font:500 14.5px/1 Outfit,sans-serif;cursor:pointer">Nie teraz</div>
+      <div onClick="{{ confirmCooked }}" style="flex:1;background:#2C2C2A;border-radius:16px;padding:15px;text-align:center;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Zaktualizuj</div>
+    </div>
+  </div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ s.all }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:0;letter-spacing:-.02em">Wszystkie przepisy</h1>
+  <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:7px">842 przepisy · niezależnie od lodówki</div>
+  <div onClick="{{ goSearch }}" style="margin-top:14px;background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:13px 15px;font:400 14.5px/1 Outfit,sans-serif;color:#888780;cursor:pointer">Szukaj przepisu lub składnika…</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:11px">
+    <sc-for list="{{ allChips }}" as="c" hint-placeholder-count="6">
+      <div onClick="{{ c.pick }}" style="background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};border-radius:999px;padding:8px 14px;font:500 12.5px/1 Outfit,sans-serif;cursor:pointer">{{ c.label }}</div>
+    </sc-for>
+  </div>
+  <div style="margin-top:16px;background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ allList }}" as="r" hint-placeholder-count="8">
+      <div onClick="{{ r.open }}" style="display:flex;gap:13px;align-items:center;padding:12px 14px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;background-image:{{ r.img }};background-size:cover;background-position:center;background-color:#F1EFE8;flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 14.5px/1.25 Outfit,sans-serif">{{ r.title }}</div>
+          <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:6px">{{ r.meta }}</div>
+        </div>
+        <div style="font:500 12.5px/1 'IBM Plex Mono',monospace;color:{{ r.matchColor }}">{{ r.match }}</div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.favorites }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div style="display:flex;align-items:center;gap:9px">
+    <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:0;letter-spacing:-.02em">Ulubione</h1>
+  </div>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px">Zapisane przepisy działają też offline. Kolekcje i udostępnianie dojdą w kolejnej wersji.</div>
+  <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ favList }}" as="r" hint-placeholder-count="3">
+      <div onClick="{{ r.open }}" style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;padding:13px;display:flex;gap:13px;align-items:center;cursor:pointer">
+        <div style="width:56px;height:56px;border-radius:13px;background-image:{{ r.img }};background-size:cover;background-position:center;background-color:#F1EFE8;flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 15px/1.25 Outfit,sans-serif">{{ r.title }}</div>
+          <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:6px">{{ r.meta }}</div>
+        </div>
+        <div style="font:400 16px/1 Outfit,sans-serif;color:#D85A30">♥</div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ favEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px dashed #D3D1C7;border-radius:18px;padding:30px 20px;text-align:center">
+        <div style="font:600 15px/1.3 Outfit,sans-serif">Nic tu jeszcze nie ma</div>
+        <div style="font:400 13px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px">Dodaj przepis serduszkiem na ekranie szczegółów.</div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.history }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div style="display:flex;align-items:center;gap:9px">
+    <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:0;letter-spacing:-.02em">Historia</h1>
+  </div>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px">Skany lodówki i wygenerowane listy z ostatnich 30 dni.</div>
+  <div style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
+    <sc-for list="{{ history }}" as="h" hint-placeholder-count="4">
+      <div style="display:flex;gap:13px">
+        <div style="width:9px;flex:none;display:flex;flex-direction:column;align-items:center;padding-top:5px">
+          <div style="width:9px;height:9px;border-radius:99px;background:{{ h.dot }}"></div>
+          <div style="flex:1;width:1px;background:#D3D1C7;margin-top:4px"></div>
+        </div>
+        <div style="flex:1;background:#fff;border:1px solid #D3D1C7;border-radius:16px;padding:13px 14px">
+          <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780">{{ h.when }}</div>
+          <div style="font:600 14.5px/1.25 Outfit,sans-serif;margin-top:7px">{{ h.title }}</div>
+          <div style="font:400 12.5px/1.45 Outfit,sans-serif;color:#888780;margin-top:5px">{{ h.body }}</div>
+          <div style="font:500 12.5px/1 Outfit,sans-serif;color:#3B6D11;margin-top:10px">{{ h.action }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.more }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:0 0 18px;letter-spacing:-.02em">Więcej</h1>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ moreItems }}" as="m" hint-placeholder-count="3">
+      <div onClick="{{ m.pick }}" style="display:flex;align-items:center;gap:12px;padding:16px 15px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+        <div style="flex:1">
+          <div style="font:600 15px/1.2 Outfit,sans-serif">{{ m.label }}</div>
+          <div style="font:400 12px/1.4 Outfit,sans-serif;color:#888780;margin-top:4px">{{ m.desc }}</div>
+        </div>
+        <div style="font:400 16px/1 Outfit,sans-serif;color:rgba(44,44,42,.35)">›</div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.settings }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div onClick="{{ goMore }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Więcej</div>
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:13px 0 16px;letter-spacing:-.02em">Ustawienia i konto</h1>
+
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;padding:15px">
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">Imię</div>
+    <input value="{{ nameValue }}" onChange="{{ setName }}" placeholder="Twoje imię" style="margin-top:10px;width:100%;box-sizing:border-box;background:#F1EFE8;border:1px solid #D3D1C7;border-radius:13px;padding:13px 14px;font:600 15.5px/1.2 Outfit,sans-serif;color:#2C2C2A;outline:none" style-focus="border-color:#3B6D11">
+    <div style="font:400 11.5px/1.45 Outfit,sans-serif;color:#888780;margin-top:9px">Bez konta i logowania. Wszystko zapisane lokalnie na tym telefonie.</div>
+  </div>
+
+  <div style="margin-top:12px;background:#173404;border-radius:18px;padding:17px">
+    <div style="font:500 10.5px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55)">Premium</div>
+    <div style="font:600 17px/1.25 Outfit,sans-serif;color:#fff;margin-top:9px">Nielimitowane skany i plan tygodniowy</div>
+    <div style="font:400 12.5px/1.45 Outfit,sans-serif;color:rgba(255,255,255,.62);margin-top:6px">Free: 3 skany dziennie. Premium: bez limitu, listy zakupów, eksport.</div>
+    <div style="margin-top:13px;background:#fff;border-radius:13px;padding:12px;text-align:center;font:600 14px/1 Outfit,sans-serif;color:#2C2C2A;cursor:pointer">Sprawdź Premium — 19 zł / mies.</div>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:24px 0 9px">Zgody RODO</div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ consents }}" as="c" hint-placeholder-count="3">
+      <div onClick="{{ c.toggle }}" style="display:flex;align-items:center;gap:13px;padding:14px 15px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+        <div style="flex:1">
+          <div style="font:600 14px/1.25 Outfit,sans-serif">{{ c.label }}</div>
+          <div style="font:400 12px/1.45 Outfit,sans-serif;color:#888780;margin-top:4px">{{ c.desc }}</div>
+        </div>
+        <div style="width:44px;height:26px;border-radius:99px;background:{{ c.track }};position:relative;flex:none">
+          <div style="position:absolute;top:3px;left:{{ c.knob }};width:20px;height:20px;border-radius:99px;background:#fff"></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:24px 0 9px">Powiadomienia</div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ notifs }}" as="c" hint-placeholder-count="3">
+      <div onClick="{{ c.toggle }}" style="display:flex;align-items:center;gap:13px;padding:14px 15px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+        <div style="flex:1">
+          <div style="font:600 14px/1.25 Outfit,sans-serif">{{ c.label }}</div>
+          <div style="font:400 12px/1.45 Outfit,sans-serif;color:#888780;margin-top:4px">{{ c.desc }}</div>
+        </div>
+        <div style="width:44px;height:26px;border-radius:99px;background:{{ c.track }};position:relative;flex:none">
+          <div style="position:absolute;top:3px;left:{{ c.knob }};width:20px;height:20px;border-radius:99px;background:#fff"></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:24px 0 9px">Dane na telefonie</div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;padding:15px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <div style="font:600 14px/1.2 Outfit,sans-serif">Lokalna baza (SQLite)</div>
+      <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780">4,2 MB</div>
+    </div>
+    <div style="font:400 12px/1.45 Outfit,sans-serif;color:#888780;margin-top:6px">12 produktów, 2 ulubione przepisy, 4 wpisy historii. Nic nie jest wysyłane na serwer — poza pojedynczym zdjęciem w chwili rozpoznawania.</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <div style="flex:1;background:#D3D1C7;border-radius:12px;padding:11px;text-align:center;font:500 13px/1 Outfit,sans-serif;cursor:pointer">Eksportuj kopię</div>
+      <div style="flex:1;background:#D3D1C7;border-radius:12px;padding:11px;text-align:center;font:500 13px/1 Outfit,sans-serif;cursor:pointer">Wyczyść lodówkę</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <div onClick="{{ goIntro }}" style="padding:15px;font:500 14px/1 Outfit,sans-serif;border-bottom:1px solid #D3D1C7;cursor:pointer">Pokaż wprowadzenie ponownie</div>
+    <div style="padding:15px;font:500 14px/1 Outfit,sans-serif;border-bottom:1px solid #D3D1C7">Polityka prywatności</div>
+    <div style="padding:15px;font:500 14px/1 Outfit,sans-serif;border-bottom:1px solid #D3D1C7">Regulamin</div>
+    <div style="padding:15px;font:500 14px/1 Outfit,sans-serif;color:#993C1D">Usuń wszystkie dane z telefonu</div>
+  </div>
+  <div style="font:400 11px/1.5 'IBM Plex Mono',monospace;color:#888780;margin-top:14px">FridgeScan 0.9.2 · bez konta · dane skanów przechowywane 30 dni lokalnie</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.fridgeEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">{{ greeting }}</div>
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:8px 0 0;letter-spacing:-.02em">Lodówka</h1>
+  <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:7px">pusto · brak skanów</div>
+  <div style="margin-top:24px;background:#fff;border:1px dashed #D3D1C7;border-radius:20px;padding:34px 24px;text-align:center">
+    <div style="width:56px;height:56px;border-radius:17px;background:#EAF3DE;margin:0 auto;display:flex;align-items:center;justify-content:center">
+      <img src="https://unpkg.com/lucide-static@0.460.0/icons/refrigerator.svg" alt="" style="width:26px;height:26px">
+    </div>
+    <div style="font:600 17px/1.3 Outfit,sans-serif;margin-top:16px">Twoja lodówka jest pusta</div>
+    <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px;text-wrap:pretty">Zrób jedno zdjęcie wnętrza — AI rozpozna produkty i od razu podpowie przepisy. Możesz też wpisać kilka rzeczy ręcznie.</div>
+    <div onClick="{{ goScan }}" style="margin-top:18px;background:#1D9E75;border-radius:16px;padding:15px;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Zrób zdjęcie lodówki</div>
+    <div onClick="{{ goManual }}" style="margin-top:9px;padding:14px;font:500 14.5px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer">Dodam produkty ręcznie</div>
+  </div>
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:26px 0 9px">Zacznij od podstaw</div>
+  <div style="display:flex;flex-wrap:wrap;gap:7px">
+    <sc-for list="{{ suggestions }}" as="g" hint-placeholder-count="6">
+      <div onClick="{{ goManual }}" style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:9px 14px;font:500 13px/1 Outfit,sans-serif;cursor:pointer">+ {{ g.name }}</div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.perm }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:64px 26px 40px;background:#04342C">
+  <div style="width:62px;height:62px;border-radius:19px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center">
+    <img src="https://unpkg.com/lucide-static@0.460.0/icons/camera.svg" alt="" style="width:28px;height:28px;filter:brightness(0) invert(1)">
+  </div>
+  <h1 style="font:600 27px/1.18 Outfit,sans-serif;color:#fff;margin:24px 0 0;letter-spacing:-.02em">Aplikacja nie ma dostępu do kamery</h1>
+  <div style="font:400 15px/1.55 Outfit,sans-serif;color:rgba(255,255,255,.72);margin-top:12px;text-wrap:pretty">Bez kamery nie zrobimy zdjęcia lodówki. Możesz włączyć dostęp w ustawieniach systemowych albo pracować bez skanowania.</div>
+  <div style="margin-top:20px;background:rgba(255,255,255,.08);border-radius:16px;padding:15px">
+    <div style="font:500 10.5px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5)">Co robimy ze zdjęciem</div>
+    <div style="font:400 12.5px/1.5 Outfit,sans-serif;color:rgba(255,255,255,.72);margin-top:8px">Wysyłamy je raz do rozpoznania i usuwamy po 24 godzinach. Nie zapisujemy go w galerii aplikacji.</div>
+  </div>
+  <div style="margin-top:24px;display:flex;flex-direction:column;gap:9px">
+    <div style="background:#fff;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#04342C;cursor:pointer">Otwórz ustawienia systemowe</div>
+    <div onClick="{{ goManual }}" style="border:1px solid rgba(255,255,255,.28);border-radius:17px;padding:16px;text-align:center;font:500 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Dodaj produkty ręcznie</div>
+    <div onClick="{{ goFridge }}" style="padding:12px;text-align:center;font:500 14px/1 Outfit,sans-serif;color:rgba(255,255,255,.6);cursor:pointer">Wróć do lodówki</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.scanNone }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div onClick="{{ retry }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Skanuj ponownie</div>
+  <div style="margin-top:20px;background:#fff;border:1px solid #D3D1C7;border-radius:20px;padding:28px 22px">
+    <div style="width:52px;height:52px;border-radius:16px;background:#FAECE7;display:flex;align-items:center;justify-content:center">
+      <img src="https://unpkg.com/lucide-static@0.460.0/icons/triangle-alert.svg" alt="" style="width:24px;height:24px">
+    </div>
+    <div style="font:600 20px/1.25 Outfit,sans-serif;margin-top:16px;letter-spacing:-.02em">Nie rozpoznaliśmy żadnego produktu</div>
+    <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:9px;text-wrap:pretty">Zdjęcie było zbyt ciemne albo produkty są zasłonięte. To zdarza się przy zamkniętych szufladach i folii.</div>
+    <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="font:500 11px/1.5 'IBM Plex Mono',monospace;color:#3B6D11;flex:none">01</div>
+        <div style="font:400 13.5px/1.45 Outfit,sans-serif">Otwórz drzwi szerzej i włącz światło w pomieszczeniu</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="font:500 11px/1.5 'IBM Plex Mono',monospace;color:#3B6D11;flex:none">02</div>
+        <div style="font:400 13.5px/1.45 Outfit,sans-serif">Wyciągnij produkty z szuflad na widoczną półkę</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="font:500 11px/1.5 'IBM Plex Mono',monospace;color:#3B6D11;flex:none">03</div>
+        <div style="font:400 13.5px/1.45 Outfit,sans-serif">Trzymaj telefon 40–60 cm od lodówki, bez zbliżenia</div>
+      </div>
+    </div>
+  </div>
+  <div onClick="{{ retry }}" style="margin-top:16px;background:#1D9E75;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Zrób nowe zdjęcie</div>
+  <div onClick="{{ goManual }}" style="margin-top:9px;border:1px solid #D3D1C7;border-radius:17px;padding:16px;text-align:center;font:500 15px/1 Outfit,sans-serif;cursor:pointer">Wpisz produkty ręcznie</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.error }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div onClick="{{ goFridge }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Lodówka</div>
+  <div style="margin-top:20px;background:#fff;border:1px solid #D3D1C7;border-radius:20px;padding:28px 22px;text-align:center">
+    <div style="width:52px;height:52px;border-radius:16px;background:#FAECE7;margin:0 auto;display:flex;align-items:center;justify-content:center">
+      <img src="https://unpkg.com/lucide-static@0.460.0/icons/wifi-off.svg" alt="" style="width:24px;height:24px">
+    </div>
+    <div style="font:600 20px/1.25 Outfit,sans-serif;margin-top:16px;letter-spacing:-.02em">Rozpoznawanie nie zadziałało</div>
+    <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:9px;text-wrap:pretty">Brak połączenia z serwerem rozpoznawania. Zdjęcie zostało zapisane lokalnie — spróbujemy ponownie, gdy wróci internet.</div>
+    <div style="margin-top:16px;background:#F1EFE8;border-radius:13px;padding:12px;font:400 11px/1.5 'IBM Plex Mono',monospace;color:#888780">błąd: NETWORK_TIMEOUT · 18:12:44</div>
+    <div onClick="{{ retry }}" style="margin-top:18px;background:#3B6D11;border-radius:16px;padding:15px;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Spróbuj ponownie</div>
+    <div onClick="{{ goManual }}" style="margin-top:9px;padding:14px;font:500 14.5px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer">Dodaj produkty ręcznie</div>
+  </div>
+  <div style="margin-top:18px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin-bottom:9px">Co działa offline</div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:16px;padding:15px;font:400 13px/1.5 Outfit,sans-serif;color:#888780">Lista produktów, ręczne dodawanie, ulubione przepisy i lista zakupów. Nie działa: rozpoznawanie zdjęć i generowanie nowych propozycji.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.loading }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <h1 style="font:600 26px/1.15 Outfit,sans-serif;margin:0;letter-spacing:-.02em">Szukam przepisów</h1>
+  <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:8px">dopasowuję 842 przepisy do 13 produktów…</div>
+  <div style="margin-top:16px;height:3px;border-radius:99px;background:#D3D1C7;overflow:hidden">
+    <div style="width:46%;height:3px;background:#3B6D11"></div>
+  </div>
+  <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ skeletons }}" as="k" hint-placeholder-count="5">
+      <div style="background:#fff;border:1px solid #D3D1C7;border-radius:18px;padding:13px;display:flex;gap:13px;align-items:center">
+        <div style="width:64px;height:64px;border-radius:14px;background:#F1EFE8;flex:none"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:9px">
+          <div style="height:13px;width:72%;border-radius:99px;background:#F1EFE8"></div>
+          <div style="height:10px;width:44%;border-radius:99px;background:#F1EFE8"></div>
+          <div style="height:10px;width:58%;border-radius:99px;background:#F1EFE8"></div>
+        </div>
+        <div style="width:44px;height:22px;border-radius:99px;background:#F1EFE8;flex:none;align-self:flex-start"></div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.resultsEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div onClick="{{ goGenerator }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Zmień preferencje</div>
+  <h1 style="font:600 26px/1.15 Outfit,sans-serif;margin:13px 0 5px;letter-spacing:-.02em">Propozycje</h1>
+  <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780">0 propozycji · min. 3 składniki z lodówki</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+    <div style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:7px 13px;font:500 12px/1 Outfit,sans-serif">Kolacja</div>
+    <div style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:7px 13px;font:500 12px/1 Outfit,sans-serif">Na słodko</div>
+    <div style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:7px 13px;font:500 12px/1 Outfit,sans-serif">Złożone</div>
+    <div style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:7px 13px;font:500 12px/1 Outfit,sans-serif">Dla dorosłych</div>
+  </div>
+  <div style="margin-top:16px;background:#fff;border:1px dashed #D3D1C7;border-radius:20px;padding:30px 22px;text-align:center">
+    <div style="font:600 17px/1.3 Outfit,sans-serif">Nic nie pasuje do wszystkich czterech filtrów</div>
+    <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:9px;text-wrap:pretty">Najbardziej ograniczające jest „Złożone” — po jego zdjęciu mamy 2 propozycje.</div>
+    <div onClick="{{ goGenerator }}" style="margin-top:18px;background:#3B6D11;border-radius:16px;padding:15px;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Poluzuj „Złożone”</div>
+    <div onClick="{{ goManual }}" style="margin-top:9px;padding:13px;font:500 14.5px/1 Outfit,sans-serif;color:#3B6D11;cursor:pointer">Dodaj produkty do lodówki</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.search }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div style="display:flex;gap:10px;align-items:center">
+    <input value="{{ searchQ }}" onChange="{{ setSearch }}" placeholder="Szukaj przepisu lub składnika…" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1px solid #3B6D11;border-radius:14px;padding:13px 15px;font:400 15px/1.2 Outfit,sans-serif;color:#2C2C2A;outline:none">
+    <div onClick="{{ clearSearch }}" style="flex:none;font:500 14px/1 Outfit,sans-serif;color:#888780;cursor:pointer">Anuluj</div>
+  </div>
+  <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:14px">{{ searchCount }}</div>
+
+  <sc-if value="{{ searchIdle }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:18px">
+      <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin-bottom:9px">Ostatnio szukane</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        <sc-for list="{{ searchRecent }}" as="r" hint-placeholder-count="4">
+          <div onClick="{{ r.pick }}" style="background:#fff;border:1px solid #D3D1C7;border-radius:999px;padding:9px 14px;font:500 13px/1 Outfit,sans-serif;cursor:pointer">{{ r.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="margin-top:14px;background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ searchHits }}" as="r" hint-placeholder-count="3">
+      <div onClick="{{ r.open }}" style="display:flex;gap:13px;align-items:center;padding:12px 14px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;background-image:{{ r.img }};background-size:cover;background-position:center;background-color:#F1EFE8;flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 14.5px/1.25 Outfit,sans-serif">{{ r.title }}</div>
+          <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:6px">{{ r.meta }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ searchEmpty }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:14px;background:#fff;border:1px dashed #D3D1C7;border-radius:18px;padding:28px 20px;text-align:center">
+      <div style="font:600 15.5px/1.3 Outfit,sans-serif">Brak wyników</div>
+      <div style="font:400 13px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px">Sprawdź pisownię albo szukaj po składniku, nie po nazwie potrawy.</div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.favEmptyDemo }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:0;letter-spacing:-.02em">Ulubione</h1>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px">Zapisane przepisy działają też offline.</div>
+  <div style="margin-top:20px;background:#fff;border:1px dashed #D3D1C7;border-radius:20px;padding:34px 24px;text-align:center">
+    <div style="width:56px;height:56px;border-radius:17px;background:#FAECE7;margin:0 auto;display:flex;align-items:center;justify-content:center">
+      <img src="https://unpkg.com/lucide-static@0.460.0/icons/heart.svg" alt="" style="width:26px;height:26px">
+    </div>
+    <div style="font:600 17px/1.3 Outfit,sans-serif;margin-top:16px">Nic tu jeszcze nie ma</div>
+    <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:8px;text-wrap:pretty">Tapnij serduszko na ekranie przepisu — wróci tu razem ze składnikami i krokami, dostępny bez internetu.</div>
+    <div onClick="{{ goGenerator }}" style="margin-top:18px;background:#3B6D11;border-radius:16px;padding:15px;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Znajdź pierwszy przepis</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.shopping }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 24px;background:#F1EFE8">
+  <div onClick="{{ goMore }}" style="font:400 13px/1 Outfit,sans-serif;color:#888780;cursor:pointer">← Więcej</div>
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:13px 0 0;letter-spacing:-.02em">Lista zakupów</h1>
+  <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:7px">{{ shopLeft }}</div>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:10px;text-wrap:pretty">Zebrane automatycznie z przepisów, w których brakowało Ci składników. Odhaczone znikną po zakupach.</div>
+  <div style="margin-top:18px;background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ shopList }}" as="i" hint-placeholder-count="5">
+      <div onClick="{{ i.toggle }}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #D3D1C7;cursor:pointer">
+        <div style="width:21px;height:21px;border-radius:6px;border:1.5px solid {{ i.boxBd }};background:{{ i.boxBg }};color:#fff;font:500 12px/19px Outfit,sans-serif;text-align:center;flex:none">{{ i.mark }}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font:600 14.5px/1.2 Outfit,sans-serif;color:{{ i.nameColor }};text-decoration:{{ i.deco }}">{{ i.name }}</div>
+          <div style="font:400 11.5px/1.35 Outfit,sans-serif;color:#888780;margin-top:4px">na: {{ i.why }}</div>
+        </div>
+        <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780;flex:none">{{ i.amount }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;gap:9px;margin-top:18px">
+    <div onClick="{{ shopShare }}" style="flex:1;background:#2C2C2A;border-radius:16px;padding:15px;text-align:center;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Udostępnij listę</div>
+    <div onClick="{{ goManual }}" style="flex:none;padding:15px 18px;border:1px solid #D3D1C7;border-radius:16px;font:500 14.5px/1 Outfit,sans-serif;cursor:pointer">Dodaj pozycję</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.notifPerm }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:64px 26px 40px;background:#F1EFE8">
+  <div style="width:60px;height:60px;border-radius:19px;background:#EAF3DE;display:flex;align-items:center;justify-content:center">
+    <img src="https://unpkg.com/lucide-static@0.460.0/icons/bell.svg" alt="" style="width:26px;height:26px">
+  </div>
+  <h1 style="font:600 27px/1.18 Outfit,sans-serif;margin:22px 0 0;letter-spacing:-.02em">Mamy Ci przypominać, co się psuje?</h1>
+  <div style="font:400 15px/1.55 Outfit,sans-serif;color:#888780;margin-top:11px;text-wrap:pretty">Jedno powiadomienie, gdy coś w lodówce zbliża się do końca terminu. Bez tego łatwo przeoczyć jogurt.</div>
+  <div style="margin-top:20px;background:#fff;border:1px solid #D3D1C7;border-radius:18px;overflow:hidden">
+    <sc-for list="{{ notifRows }}" as="r" hint-placeholder-count="3">
+      <div style="display:flex;gap:11px;align-items:flex-start;padding:14px 15px;border-bottom:1px solid #D3D1C7">
+        <img src="https://unpkg.com/lucide-static@0.460.0/icons/check.svg" alt="" style="width:17px;height:17px;flex:none;margin-top:1px">
+        <div style="flex:1">
+          <div style="font:600 14px/1.25 Outfit,sans-serif">{{ r.label }}</div>
+          <div style="font:400 12px/1.45 Outfit,sans-serif;color:#888780;margin-top:3px">{{ r.desc }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="font:400 12px/1.5 Outfit,sans-serif;color:#888780;margin-top:12px">Każde z nich wyłączysz osobno w Ustawieniach.</div>
+  <div style="margin-top:22px;display:flex;flex-direction:column;gap:9px">
+    <div onClick="{{ notifAllow }}" style="background:#3B6D11;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Włącz powiadomienia</div>
+    <div onClick="{{ notifSkip }}" style="padding:14px;text-align:center;font:500 14.5px/1 Outfit,sans-serif;color:#888780;cursor:pointer">Nie teraz</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.specTokens }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 40px;background:#fff">
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">Spec 1 z 3</div>
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:9px 0 0;letter-spacing:-.02em">Tokeny i typografia</h1>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:9px">Nazwy 1:1 do <code style="font:400 12.5px/1 'IBM Plex Mono',monospace">theme.ts</code>. Żaden kolor poza tą listą nie występuje w designie.</div>
+
+  <sc-for list="{{ tokenGroups }}" as="g" hint-placeholder-count="4">
+    <div style="margin-top:26px">
+      <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin-bottom:10px">{{ g.label }}</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;gap:11px;align-items:stretch">
+            <div style="width:74px;flex:none;border-radius:11px;background:{{ r.hex }};border:1px solid #D3D1C7;display:flex;align-items:center;justify-content:center;padding:12px 4px">
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;color:{{ r.on }}">Aa</span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;gap:8px;align-items:baseline">
+                <span style="font:600 13px/1.2 'IBM Plex Mono',monospace">{{ r.name }}</span>
+                <span style="font:400 11px/1.2 'IBM Plex Mono',monospace;color:#888780">{{ r.hex }}</span>
+              </div>
+              <div style="font:400 12px/1.4 Outfit,sans-serif;color:#888780;margin-top:4px">{{ r.use }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:32px 0 10px">Skala typografii</div>
+  <div style="border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+    <sc-for list="{{ typeRows }}" as="t" hint-placeholder-count="11">
+      <div style="padding:12px 14px;border-bottom:1px solid #D3D1C7">
+        <div style="display:flex;gap:8px;align-items:baseline">
+          <span style="font:600 12.5px/1.2 'IBM Plex Mono',monospace">{{ t.name }}</span>
+          <span style="font:400 11px/1.2 'IBM Plex Mono',monospace;color:#888780">{{ t.spec }}</span>
+        </div>
+        <div style="font:{{ t.style }};margin-top:7px;color:#2C2C2A">{{ t.sample }}</div>
+        <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">{{ t.family }} · {{ t.use }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:32px 0 10px">Spacing</div>
+  <div style="border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+    <sc-for list="{{ spaceRows }}" as="p" hint-placeholder-count="9">
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid #D3D1C7">
+        <span style="font:600 12px/1 'IBM Plex Mono',monospace;width:64px;flex:none">{{ p.name }}</span>
+        <span style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780;width:44px;flex:none">{{ p.px }}</span>
+        <div style="height:11px;border-radius:3px;background:#EAF3DE;border:1px solid #3B6D11;width:{{ p.w }}"></div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:32px 0 10px">Radius</div>
+  <div style="border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+    <sc-for list="{{ radiusRows }}" as="r" hint-placeholder-count="7">
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #D3D1C7">
+        <div style="width:34px;height:34px;flex:none;background:#EAF3DE;border:1px solid #3B6D11;border-radius:{{ r.r }}"></div>
+        <span style="font:600 12px/1 'IBM Plex Mono',monospace;width:52px;flex:none">{{ r.name }}</span>
+        <span style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780;width:44px;flex:none">{{ r.px }}</span>
+        <span style="font:400 11.5px/1.35 Outfit,sans-serif;color:#888780;flex:1">{{ r.use }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.specComp }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 40px;background:#fff">
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">Spec 2 z 3</div>
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:9px 0 0;letter-spacing:-.02em">Komponenty</h1>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:9px">Każdy stan, który występuje w aplikacji. Podpis mówi, gdzie go szukać.</div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:28px 0 11px">Button</div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div>
+      <div style="background:#3B6D11;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#fff">Dodaj do lodówki</div>
+      <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">primary · primary700 / white · radius 17 · padding 16</div>
+    </div>
+    <div>
+      <div style="background:#2C2C2A;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#fff">Generuj przepisy</div>
+      <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">secondary · ink / white · akcja neutralna, nie potwierdzająca</div>
+    </div>
+    <div>
+      <div style="background:#D85A30;border-radius:16px;padding:15px;text-align:center;font:600 15px/1 Outfit,sans-serif;color:#fff">Oznacz jako wykonane</div>
+      <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">accent-action · secondary500 / white · tylko w szczegółach przepisu</div>
+    </div>
+    <div>
+      <div style="border:1px solid #D3D1C7;border-radius:16px;padding:15px;text-align:center;font:500 14.5px/1 Outfit,sans-serif">Dodaj pozycję</div>
+      <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">outline · line 1 px / ink · bez tła</div>
+    </div>
+    <div>
+      <div style="padding:14px;text-align:center;font:500 14.5px/1 Outfit,sans-serif;color:#3B6D11">Dodam produkty ręcznie</div>
+      <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">tertiary · primary700, bez tła i ramki · min. wysokość dotyku 44</div>
+    </div>
+    <div>
+      <div style="background:#D3D1C7;border-radius:17px;padding:16px;text-align:center;font:600 15.5px/1 Outfit,sans-serif;color:#888780">Dodaj do lodówki</div>
+      <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">disabled · line / mute · gdy nazwa produktu jest pusta</div>
+    </div>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:30px 0 11px">Chip</div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap">
+    <div style="background:#3B6D11;color:#fff;border:1px solid #3B6D11;border-radius:999px;padding:9px 14px;font:600 13px/1 Outfit,sans-serif">Warzywa</div>
+    <div style="background:#fff;color:#2C2C2A;border:1px solid #D3D1C7;border-radius:999px;padding:9px 14px;font:500 13px/1 Outfit,sans-serif">Nabiał</div>
+    <div style="background:#2C2C2A;color:#fff;border:1px solid #2C2C2A;border-radius:999px;padding:8px 14px;font:500 12.5px/1 Outfit,sans-serif">Wszystkie</div>
+    <div style="background:#fff;color:#888780;border:1px dashed #D3D1C7;border-radius:999px;padding:9px 14px;font:500 13px/1 Outfit,sans-serif">+ Cebula</div>
+  </div>
+  <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:8px">wybrany (primary) · domyślny · filtr aktywny (ink) · sugestia do dodania</div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:30px 0 11px">Badge</div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+    <div style="background:#EAF3DE;color:#3B6D11;border-radius:999px;padding:5px 9px;font:500 11px/1 'IBM Plex Mono',monospace">98%</div>
+    <div style="background:#FAECE7;color:#993C1D;border-radius:999px;padding:4px 9px;font:500 11px/1 Outfit,sans-serif">został 1 dzień</div>
+    <div style="border:1.5px solid #5DCAA5;background:rgba(16,19,20,.55);border-radius:9px;padding:5px 9px;font:500 11px/1 'IBM Plex Mono',monospace;color:#5DCAA5">jajka · 96%</div>
+    <div style="border:1.5px solid #F0997B;background:rgba(16,19,20,.55);border-radius:9px;padding:5px 9px;font:500 11px/1 'IBM Plex Mono',monospace;color:#F0997B">szpinak? · 64%</div>
+  </div>
+  <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:8px">dopasowanie · termin ważności · rozpoznane na skanie · niepewne (&lt; 70%)</div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:30px 0 11px">Input</div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:15px;font:400 15.5px/1.2 Outfit,sans-serif;color:#888780">Twoje imię</div>
+    <div style="background:#fff;border:1px solid #3B6D11;border-radius:14px;padding:15px;font:500 15.5px/1.2 Outfit,sans-serif;color:#2C2C2A">Pomidory</div>
+    <div style="background:#F1EFE8;border:1px solid #D3D1C7;border-radius:13px;padding:13px 14px;font:600 15.5px/1.2 Outfit,sans-serif;color:#2C2C2A">Anna</div>
+  </div>
+  <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:8px">placeholder (mute) · focus (ramka primary700) · na tle karty (surface)</div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:30px 0 11px">Toggle i checkbox</div>
+  <div style="display:flex;gap:16px;align-items:center">
+    <div style="width:44px;height:26px;border-radius:99px;background:#3B6D11;position:relative">
+      <div style="position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:99px;background:#fff"></div>
+    </div>
+    <div style="width:44px;height:26px;border-radius:99px;background:#D3D1C7;position:relative">
+      <div style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:99px;background:#fff"></div>
+    </div>
+    <div style="width:21px;height:21px;border-radius:6px;background:#3B6D11;border:1.5px solid #3B6D11;color:#fff;font:500 12px/19px Outfit,sans-serif;text-align:center">✓</div>
+    <div style="width:21px;height:21px;border-radius:6px;border:1.5px solid #D3D1C7"></div>
+    <div style="display:flex;gap:9px;align-items:center">
+      <div style="width:30px;height:30px;border-radius:9px;background:#D3D1C7;font:500 16px/30px Outfit,sans-serif;text-align:center">−</div>
+      <div style="font:500 12.5px/1 'IBM Plex Mono',monospace;min-width:44px;text-align:center">150 g</div>
+      <div style="width:30px;height:30px;border-radius:9px;background:#D3D1C7;font:500 16px/30px Outfit,sans-serif;text-align:center">+</div>
+    </div>
+  </div>
+  <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:8px">toggle on/off · checkbox on/off · stepper ilości (krok: 1 szt / 50 g / 0,5 l)</div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:30px 0 11px">Wiersz listy i karta</div>
+  <div style="background:#fff;border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #D3D1C7">
+      <div style="width:34px;height:34px;border-radius:10px;background:#EAF3DE;flex:none;display:flex;align-items:center;justify-content:center;font:600 13px/1 Outfit,sans-serif;color:#3B6D11">F</div>
+      <div style="flex:1">
+        <div style="font:600 14.5px/1.2 Outfit,sans-serif">Feta</div>
+        <div style="font:400 11px/1 'IBM Plex Mono',monospace;color:#888780;margin-top:4px">Nabiał</div>
+      </div>
+      <div style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780">150 g</div>
+    </div>
+    <div style="padding:13px 14px;font:500 14px/1 Outfit,sans-serif;color:#3B6D11">+ Akcja na końcu listy</div>
+  </div>
+  <div style="font:400 11.5px/1.4 Outfit,sans-serif;color:#888780;margin-top:8px">wiersz: miniatura 34 · nazwa (label) · meta (mono) · wartość po prawej. Separator 1 px line, także po ostatnim wierszu — obcina go overflow hidden kontenera.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.specNav }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;padding:64px 20px 40px;background:#fff">
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780">Spec 3 z 3</div>
+  <h1 style="font:600 27px/1.15 Outfit,sans-serif;margin:9px 0 0;letter-spacing:-.02em">Nawigacja i ikony</h1>
+  <div style="font:400 13.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:9px">Pięć zakładek. Onboarding i skan są modalne — nie mają tab bara.</div>
+
+  <div style="margin-top:22px;display:flex;flex-direction:column;gap:9px">
+    <sc-for list="{{ navRows }}" as="r" hint-placeholder-count="7">
+      <div style="border:1px solid #D3D1C7;border-radius:15px;padding:13px 14px">
+        <div style="font:600 14.5px/1.2 Outfit,sans-serif">{{ r.label }}</div>
+        <div style="font:400 11.5px/1.45 'IBM Plex Mono',monospace;color:#2C2C2A;margin-top:7px">{{ r.screens }}</div>
+        <div style="font:400 12px/1.4 Outfit,sans-serif;color:#888780;margin-top:6px">{{ r.stack }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:32px 0 11px">Ikony — lucide-react-native</div>
+  <div style="border:1px solid #D3D1C7;border-radius:16px;overflow:hidden">
+    <sc-for list="{{ iconRows }}" as="i" hint-placeholder-count="16">
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #D3D1C7">
+        <div style="width:21px;height:21px;flex:none;background-image:{{ i.url }};background-size:contain;background-repeat:no-repeat;background-position:center"></div>
+        <span style="flex:1;font:500 13.5px/1.3 Outfit,sans-serif">{{ i.label }}</span>
+        <span style="font:400 11.5px/1 'IBM Plex Mono',monospace;color:#888780">{{ i.icon }}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div style="font:400 11.5px/1.5 Outfit,sans-serif;color:#888780;margin-top:10px">Rozmiar w tab barze 23 px, w wierszach i przyciskach 21–22 px. Nieaktywna zakładka: ta sama ikona, opacity .45 i kolor podpisu mute.</div>
+
+  <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:32px 0 11px">Tab bar</div>
+  <div style="border:1px solid #D3D1C7;border-radius:16px;padding:14px">
+    <div style="font:400 12.5px/1.6 Outfit,sans-serif;color:#888780">Wysokość 80 (z safe area). Tło white, górna krawędź 1 px line. Ikona 23, odstęp 6, podpis 11/500. Aktywna: ink + opacity 1. Zakładka „Więcej” podświetla się także na Historii, Ustawieniach i Liście zakupów.</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ editSheet }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(44,44,42,.35);z-index:80"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;padding:20px 20px 40px;z-index:81">
+    <div style="width:36px;height:4px;border-radius:99px;background:#D3D1C7;margin:0 auto 18px"></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+      <div style="font:600 22px/1.18 Outfit,sans-serif;letter-spacing:-.02em">Edytuj produkt</div>
+      <div onClick="{{ closeSheet }}" style="font:500 13.5px/1 Outfit,sans-serif;color:#888780;cursor:pointer">Zamknij</div>
+    </div>
+    <input value="{{ editName }}" onChange="{{ setEditName }}" style="margin-top:16px;width:100%;box-sizing:border-box;background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:14px 15px;font:500 16px/1.2 Outfit,sans-serif;color:#2C2C2A;outline:none" style-focus="border-color:#3B6D11">
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:18px 0 8px">Kategoria</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <sc-for list="{{ editCats }}" as="c" hint-placeholder-count="7">
+        <div onClick="{{ c.pick }}" style="background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};border-radius:999px;padding:8px 13px;font:500 12.5px/1 Outfit,sans-serif;cursor:pointer">{{ c.label }}</div>
+      </sc-for>
+    </div>
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:18px 0 8px">Ilość</div>
+    <div style="display:flex;gap:8px">
+      <input value="{{ editQty }}" onChange="{{ setEditQty }}" style="width:88px;flex:none;box-sizing:border-box;background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:14px;font:500 15.5px/1.2 'IBM Plex Mono',monospace;color:#2C2C2A;outline:none;text-align:center" style-focus="border-color:#3B6D11">
+      <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap;align-content:center">
+        <sc-for list="{{ editUnits }}" as="u" hint-placeholder-count="5">
+          <div onClick="{{ u.pick }}" style="background:{{ u.bg }};color:{{ u.fg }};border:1px solid {{ u.bd }};border-radius:999px;padding:8px 12px;font:500 12.5px/1 Outfit,sans-serif;cursor:pointer">{{ u.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#888780;margin:18px 0 8px">Data ważności</div>
+    <input value="{{ editDate }}" onChange="{{ setEditDate }}" placeholder="DD.MM.RRRR" style="width:100%;box-sizing:border-box;background:#fff;border:1px solid #D3D1C7;border-radius:14px;padding:14px 15px;font:400 15px/1.2 'IBM Plex Mono',monospace;color:#2C2C2A;outline:none" style-focus="border-color:#3B6D11">
+    <div style="display:flex;gap:9px;margin-top:20px">
+      <div onClick="{{ deleteEdit }}" style="flex:none;padding:15px 18px;border:1px solid #D3D1C7;border-radius:16px;font:500 14.5px/1 Outfit,sans-serif;color:#993C1D;cursor:pointer">Usuń</div>
+      <div onClick="{{ saveEdit }}" style="flex:1;background:#3B6D11;border-radius:16px;padding:15px;text-align:center;font:600 15px/1 Outfit,sans-serif;color:#fff;cursor:pointer">Zapisz</div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:16px;right:16px;bottom:96px;background:#2C2C2A;border-radius:15px;padding:14px 16px;display:flex;align-items:center;gap:11px;z-index:90">
+    <img src="https://unpkg.com/lucide-static@0.460.0/icons/check.svg" alt="" style="width:18px;height:18px;flex:none;filter:brightness(0) invert(1)">
+    <span style="flex:1;font:500 13.5px/1.35 Outfit,sans-serif;color:#fff">{{ toast }}</span>
+    <span style="font:500 12.5px/1 Outfit,sans-serif;color:#F0997B;cursor:pointer">Cofnij</span>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+<div style="flex:none;height:80px;box-sizing:border-box;background:#fff;border-top:1px solid #D3D1C7;display:flex;align-items:flex-start;padding:11px 4px 0">
+  <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+    <div onClick="{{ t.pick }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding-top:3px">
+      <div style="width:23px;height:23px;background-image:{{ t.iconBg }};background-size:contain;background-repeat:no-repeat;background-position:center;opacity:{{ t.iconOpacity }}"></div>
+      <span style="font:500 11px/1.2 Outfit,sans-serif;color:{{ t.fg }};text-align:center">{{ t.label }}</span>
+    </div>
+  </sc-for>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:720,&quot;height&quot;:980}}">
+const G = '#3B6D11', GT = '#3B6D11', CORAL = '#D85A30', R = '#993C1D', A = '#F0997B', TEAL = '#1D9E75', MUTE = '#888780';
+
+const INTRO = [
+  { kicker:'Krok 1 z 3', slotId:'intro-1', slot:'ilustracja: telefon\nprzed otwartą lodówką', title:'Zrób jedno zdjęcie', body:'Otwórz lodówkę i zrób zdjęcie w aplikacji albo wybierz je z galerii. Nie musisz nic wpisywać.', cta:'Dalej' },
+  { kicker:'Krok 2 z 3', slotId:'intro-2', slot:'ilustracja: lista\nrozpoznanych produktów', title:'AI rozpoznaje produkty', body:'W kilka sekund dostajesz listę. Możesz poprawić ilości, dodać pominięte i usunąć błędne pozycje.', cta:'Dalej' },
+  { kicker:'Krok 3 z 3', slotId:'intro-3', slot:'ilustracja: karty\nprzepisów z dopasowaniem', title:'Gotujesz z tego, co masz', body:'Wybierz rodzaj posiłku, smak i poziom trudności. Pokażemy przepisy, w których minimum 3 składniki już masz.', cta:'Zaczynajmy' },
+];
+
+const KW = { 'Nabiał':'dairy,cheese', 'Warzywa':'vegetables', 'Owoce':'fruit', 'Mięso':'meat', 'Pieczywo':'bread', 'Sypkie':'grains', 'Przyprawy':'spices' };
+const hash = str => { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 9973; return h; };
+const photo = (kw, seed, size) => 'url(https://loremflickr.com/' + size + '/' + size + '/' + kw + '?lock=' + seed + ')';
+// TheMealDB ingredient images: /images/ingredients/<Angielska-Nazwa>-Small.png
+const EN = {
+  'Jajka':'Egg', 'Mleko 3,2%':'Milk', 'Masło':'Butter', 'Feta':'Feta', 'Jogurt naturalny':'Greek Yogurt',
+  'Szpinak':'Spinach', 'Brokuł':'Broccoli', 'Pieczarki':'Mushrooms', 'Jabłka':'Apple',
+  'Makaron penne':'Penne Rigate', 'Ser żółty':'Cheddar Cheese', 'Pierś z kurczaka':'Chicken Breast',
+  'Ziemniaki':'Potatoes', 'Cebula':'Onion', 'Twaróg':'Cottage Cheese', 'Śmietana 30%':'Double Cream',
+  'Pomidory':'Tomato', 'Ryż':'Rice',
+};
+const prodImg = (name) => {
+  const en = EN[name];
+  return en ? 'url(https://www.themealdb.com/images/ingredients/' + en.replace(/ /g, '%20') + '-Small.png)' : 'none';
+};
+// brak obrazka w TheMealDB -> kafelek z inicjałem
+const prodThumb = (name) => {
+  const img = prodImg(name);
+  const has = img !== 'none';
+  return {
+    img,
+    initial: has ? '' : name.trim().charAt(0).toUpperCase(),
+    thumbBg: has ? '#fff' : '#EAF3DE',
+  };
+};
+const dishImg = (title) => photo('food,dish', hash(title), 240);
+
+const FRIDGE = [
+  ['Jajka','Nabiał','6 szt'],['Mleko 3,2%','Nabiał','1 l'],['Masło','Nabiał','200 g'],
+  ['Feta','Nabiał','150 g'],['Jogurt naturalny','Nabiał','400 g'],['Szpinak','Warzywa','200 g'],
+  ['Brokuł','Warzywa','1 szt'],['Pieczarki','Warzywa','300 g'],['Jabłka','Owoce','4 szt'],
+  ['Makaron penne','Sypkie','500 g'],['Hummus z bakłażana','Nabiał','200 g'],['Ser żółty','Nabiał','200 g'],['Pierś z kurczaka','Mięso','450 g'],
+];
+
+const FOUND = [
+  ['Jajka','pewność 96%','6 szt',false,'Nabiał'],
+  ['Feta','pewność 91%','150 g',false,'Nabiał'],
+  ['Mleko 3,2%','pewność 90%','1 l',false,'Nabiał'],
+  ['Szpinak','pewność 64% · potwierdź','200 g',true,'Warzywa'],
+  ['Pieczarki','pewność 88%','300 g',false,'Warzywa'],
+  ['Jogurt naturalny','pewność 84%','400 g',false,'Nabiał'],
+];
+
+const DATA = [
+  { id:1, title:'Omlet ze szpinakiem i fetą', meal:'Śniadanie', taste:'Na słono', diff:'Proste', who:'Dla dzieci', time:'15 min', match:'98%', have:'5 z 5 składników', uses:'Zużywa szpinak, który kończy się za 2 dni',
+    nut:[['312','kcal'],['21 g','białko'],['22 g','tłuszcz'],['5 g','węgl.']],
+    ing:[['Jajka','3 szt','masz'],['Szpinak','100 g','masz'],['Feta','60 g','masz'],['Masło','15 g','masz'],['Sól, pieprz','do smaku','masz']],
+    steps:['Rozgrzej masło na patelni na średnim ogniu.','Wrzuć szpinak, smaż 2 minuty aż zwiędnie.','Zalej roztrzepanymi jajkami, posyp pokruszoną fetą.','Przykryj i smaż 4 minuty. Podawaj od razu.'] },
+  { id:2, title:'Jajecznica z pieczarkami', meal:'Śniadanie', taste:'Na słono', diff:'Proste', who:'Dla dzieci', time:'12 min', match:'94%', have:'4 z 4 składników', uses:'Zużywa pieczarki i 3 jajka',
+    nut:[['286','kcal'],['19 g','białko'],['20 g','tłuszcz'],['4 g','węgl.']],
+    ing:[['Jajka','3 szt','masz'],['Pieczarki','150 g','masz'],['Masło','15 g','masz'],['Szczypiorek','garść','masz']],
+    steps:['Pokrój pieczarki w plastry, podsmaż na masle 5 minut.','Wlej roztrzepane jajka, mieszaj na małym ogniu.','Zdejmij z ognia, gdy jajka są jeszcze wilgotne.','Posyp szczypiorkiem i dopraw.'] },
+  { id:3, title:'Naleśniki z twarogiem i jabłkiem', meal:'Śniadanie', taste:'Na słodko', diff:'Proste', who:'Dla dzieci', time:'25 min', match:'88%', have:'4 z 5 składników', uses:'Brakuje twarogu',
+    nut:[['418','kcal'],['16 g','białko'],['13 g','tłuszcz'],['58 g','węgl.']],
+    ing:[['Mąka','200 g','masz'],['Mleko','300 ml','masz'],['Jajka','2 szt','masz'],['Twaróg','200 g','brakuje'],['Jabłko','1 szt','masz']],
+    steps:['Zmiksuj mąkę, mleko i jajka na gładkie ciasto.','Smaż cienkie naleśniki na rozgrzanej patelni.','Zetrzyj jabłko, wymieszaj z twarogiem.','Nałóż farsz, zwiń i posyp cynamonem.'] },
+  { id:4, title:'Makaron z kurczakiem i brokułem', meal:'Obiad', taste:'Na słono', diff:'Proste', who:'Dla dzieci', time:'30 min', match:'89%', have:'4 z 5 składników', uses:'Brakuje śmietany',
+    nut:[['612','kcal'],['42 g','białko'],['18 g','tłuszcz'],['66 g','węgl.']],
+    ing:[['Makaron penne','250 g','masz'],['Pierś z kurczaka','300 g','masz'],['Brokuł','1 szt','masz'],['Śmietana 30%','200 ml','brakuje'],['Czosnek','2 ząbki','masz']],
+    steps:['Ugotuj makaron al dente, dodając brokuł na ostatnie 4 minuty.','Podsmaż pokrojonego kurczaka z czosnkiem.','Dodaj śmietanę, gotuj 3 minuty.','Połącz z makaronem i dopraw.'] },
+  { id:5, title:'Risotto z pieczarkami', meal:'Obiad', taste:'Na słono', diff:'Złożone', who:'Dla dorosłych', time:'45 min', match:'78%', have:'3 z 5 składników', uses:'Brakuje ryżu arborio i wina',
+    nut:[['524','kcal'],['14 g','białko'],['19 g','tłuszcz'],['72 g','węgl.']],
+    ing:[['Ryż arborio','250 g','brakuje'],['Pieczarki','300 g','masz'],['Masło','40 g','masz'],['Ser żółty','60 g','masz'],['Bulion','1 l','masz']],
+    steps:['Podsmaż pieczarki na masle, odłóż.','Zeszklij ryż, podlewaj bulionem porcjami.','Mieszaj 18 minut, aż ryż będzie kremowy.','Wmieszaj pieczarki i starty ser.'] },
+  { id:6, title:'Tarta z porem i serem', meal:'Kolacja', taste:'Na słono', diff:'Złożone', who:'Dla dorosłych', time:'55 min', match:'72%', have:'3 z 5 składników', uses:'Brakuje ciasta i śmietany',
+    nut:[['486','kcal'],['17 g','białko'],['32 g','tłuszcz'],['30 g','węgl.']],
+    ing:[['Ciasto kruche','1 opak.','brakuje'],['Por','2 szt','masz'],['Ser żółty','150 g','masz'],['Jajka','3 szt','masz'],['Śmietana','200 ml','brakuje']],
+    steps:['Wyłóż formę ciastem, podpiecz 12 minut.','Poddusz pora na masle.','Wymieszaj jajka ze śmietaną i serem.','Wylej na ciasto, piecz 30 minut w 180°C.'] },
+  { id:7, title:'Zapiekanka z jajkiem i szynką', meal:'Kolacja', taste:'Na słono', diff:'Proste', who:'Dla dzieci', time:'20 min', match:'86%', have:'4 z 5 składników', uses:'Brakuje szynki',
+    nut:[['398','kcal'],['24 g','białko'],['21 g','tłuszcz'],['28 g','węgl.']],
+    ing:[['Pieczywo','4 kromki','masz'],['Jajka','2 szt','masz'],['Szynka','100 g','brakuje'],['Ser żółty','80 g','masz'],['Szczypiorek','garść','masz']],
+    steps:['Rozgrzej piekarnik do 200°C.','Ułóż pieczywo, na nim szynkę i ser.','Wbij jajko na środek każdej porcji.','Piecz 12 minut, posyp szczypiorkiem.'] },
+  { id:8, title:'Ryż na mleku z jabłkiem', meal:'Kolacja', taste:'Na słodko', diff:'Proste', who:'Dla dzieci', time:'20 min', match:'85%', have:'4 z 5 składników', uses:'Zużywa mleko i jabłka',
+    nut:[['342','kcal'],['11 g','białko'],['7 g','tłuszcz'],['58 g','węgl.']],
+    ing:[['Ryż','100 g','masz'],['Mleko','500 ml','masz'],['Jabłko','1 szt','masz'],['Cynamon','szczypta','masz'],['Cukier','2 łyżki','masz']],
+    steps:['Zagotuj mleko, wsyp ryż.','Gotuj na małym ogniu 15 minut, mieszając.','Zetrzyj jabłko, wmieszaj z cynamonem.','Podawaj ciepłe, posypane cukrem.'] },
+];
+
+const CONSENTS = [
+  ['Przetwarzanie zdjęć','Zdjęcia lodówki są analizowane i usuwane po 24 h.', true],
+  ['Personalizacja przepisów','Poprawki i oceny zostają na telefonie i dopasowują propozycje.', true],
+  ['Marketing i newsletter','Wiadomości o nowych funkcjach i promocjach.', false],
+];
+const NOTIFS = [
+  ['Produkty tracące świeżość','Powiadomienie 2 dni przed końcem terminu.', true],
+  ['Przypomnienia o zakupach','Po wykonaniu przepisu proponujemy uzupełnienie.', true],
+  ['Pomysł na dziś','Codziennie o 17:00 jedna propozycja z lodówki.', false],
+];
+
+const HISTORY = [
+  ['dziś 18:12','Skan lodówki','Rozpoznano 6 produktów, 1 wymagał potwierdzenia.','Otwórz listę', TEAL],
+  ['dziś 18:14','Generowanie propozycji','Śniadanie · Na słono · Proste — 4 wyniki.','Powtórz z tymi filtrami', G],
+  ['wczoraj 19:40','Wykonany przepis','Zapiekanka z jajkiem i szynką. Lodówka zaktualizowana.','Zobacz przepis', CORAL],
+  ['26.08 08:05','Skan lodówki','Rozpoznano 11 produktów.','Otwórz listę', '#D3D1C7'],
+];
+
+const TOKENS = [
+  ['Primary — zieleń', [
+    ['primary900','#173404','Welcome overlay, karta Premium','#fff'],
+    ['primary700','#3B6D11','CTA, aktywny stan, linki, tekst „masz”','#fff'],
+    ['primary50','#EAF3DE','Tło badge dopasowania, numery kroków','#3B6D11'],
+  ]],
+  ['Secondary — koral', [
+    ['secondary700','#993C1D','Tekst na chipie terminu, akcje destrukcyjne','#fff'],
+    ['secondary500','#D85A30','„Oznacz jako wykonane”, aktywne serduszko','#fff'],
+    ['secondary300','#F0997B','Ramka niepewnego rozpoznania na skanie','#2C2C2A'],
+    ['secondary50','#FAECE7','Tło chipa terminu ważności','#993C1D'],
+  ]],
+  ['Accent — turkus', [
+    ['accent900','#04342C','Tło ekranu skanowania','#fff'],
+    ['accent600','#1D9E75','Główna akcja „Zrób zdjęcie”','#fff'],
+    ['accent400','#5DCAA5','Linia skanu, ramki rozpoznanych produktów','#04342C'],
+  ]],
+  ['Neutral', [
+    ['ink','#2C2C2A','Tekst podstawowy, przyciski drugorzędne','#fff'],
+    ['inkSoft','#444441','Treść kroków przepisu','#fff'],
+    ['mute','#888780','Tekst pomocniczy, nieaktywna zakładka','#fff'],
+    ['line','#D3D1C7','Obramowania, separatory, tło steppera','#2C2C2A'],
+    ['surface','#F1EFE8','Tło ekranu','#2C2C2A'],
+    ['white','#FFFFFF','Tło kart, list i zakładek','#2C2C2A'],
+  ]],
+];
+
+const TYPE = [
+  ['display','40','600','1.08','-.03em','Outfit','Nazwa aplikacji na welcome'],
+  ['h1','27','600','1.15','-.02em','Outfit','Nagłówek ekranu'],
+  ['h2','23','600','1.18','-.02em','Outfit','Tytuł przepisu w szczegółach'],
+  ['h3','17','600','1.25','0','Outfit','Nagłówek karty Premium, arkusza'],
+  ['bodyL','15','400','1.55','0','Outfit','Opis pod nagłówkiem'],
+  ['body','14','400','1.5','0','Outfit','Kroki przepisu, opisy pozycji'],
+  ['label','14.5','600','1.2','0','Outfit','Nazwa produktu, etykieta wiersza'],
+  ['button','15.5','600','1','0','Outfit','Tekst przycisku głównego'],
+  ['caption','12.5','400','1.45','0','Outfit','Podpis pod etykietą'],
+  ['kicker','11','500','1','.14em','IBM Plex Mono','Nagłówek sekcji, UPPERCASE'],
+  ['meta','11','400','1','0','IBM Plex Mono','Ilości, czasy, liczniki'],
+];
+
+const SPACE = [['1','4'],['2','8'],['3','12'],['4','16'],['5','20'],['6','24'],['7','32'],['8','44'],['9','64']];
+const RADIUS = [
+  ['sm','9','Przyciski ilości −/+, małe kafelki'],
+  ['md','13','Input w ustawieniach, przycisk w karcie'],
+  ['lg','16','Karty list, przyciski w arkuszu'],
+  ['xl','18','Karta przepisu, kontener listy'],
+  ['2xl','22','Slot na ilustrację w onboardingu'],
+  ['sheet','26','Górne narożniki bottom sheeta'],
+  ['pill','999','Chipy, badge, przełączniki, kropki'],
+];
+
+const NAVMAP = [
+  ['Onboarding','welcome → name → intro (3 kroki) → zgoda na powiadomienia','poza tab barem, stack modalny przy pierwszym uruchomieniu'],
+  ['Lodówka','fridge · manual · found · edycja produktu (sheet)','Tab 1 — refrigerator'],
+  ['Skan','scan · brak zgody · brak wyników · błąd AI','pełnoekranowy modal nad Tabem 1'],
+  ['Generator','generator → results → detail','Tab 2 — sparkles'],
+  ['Przepisy','all · szukaj · detail','Tab 3 — book-open'],
+  ['Ulubione','favorites · detail','Tab 4 — heart'],
+  ['Więcej','more → history · settings · lista zakupów','Tab 5 — ellipsis'],
+];
+
+const ICONS = [
+  ['Zakładka Lodówka','refrigerator'],['Zakładka Generator','sparkles'],['Zakładka Przepisy','book-open'],
+  ['Zakładka Ulubione','heart'],['Zakładka Więcej','ellipsis'],['Zrób zdjęcie','camera'],
+  ['Z galerii','image'],['Ręcznie','pencil-line'],['Powrót','arrow-left'],['Zamknij / usuń','x'],
+  ['Termin ważności','calendar-clock'],['Lista zakupów','shopping-basket'],['Powiadomienia','bell'],
+  ['Potwierdzenie','check'],['Rozwiń wiersz','chevron-right'],['Błąd / ostrzeżenie','triangle-alert'],
+];
+
+const CATS = ['Nabiał','Warzywa','Owoce','Mięso','Pieczywo','Sypkie','Przyprawy'];
+const UNITS = ['szt','g','ml','l','opak.'];
+const SHOP = [
+  ['Twaróg','200 g','Naleśniki z twarogiem i jabłkiem'],
+  ['Śmietana 30%','200 ml','Makaron z kurczakiem i brokułem'],
+  ['Ryż arborio','250 g','Risotto z pieczarkami'],
+  ['Ciasto kruche','1 opak.','Tarta z porem i serem'],
+  ['Szynka','100 g','Zapiekanka z jajkiem i szynką'],
+];
+
+class Component extends DCLogic {
+  state = {
+    screen:'welcome', intro:0, editing:false, scanning:false,
+    toast:'', editSheet:false, editName:'Feta', editCat:'Nabiał', editQty:'150', editUnit:'g', editDate:'02.09.2026',
+    newName:'Pomidory', newCat:'Warzywa', newQty:'4', newUnit:'szt', newDate:'',
+    searchQ:'jaj', shopOff:{}, notifChoice:'',
+    meal:'Śniadanie', taste:'Na słono', diff:'Proste', who:'Dla dzieci',
+    current:1, from:'results', cooked:false, reminder:true, name:'Anna',
+    qty:{}, removed:{}, checked:{}, consumedOff:{}, fav:{ 2:true, 7:true },
+    consents:{ 0:true, 1:true, 2:false }, notifs:{ 0:true, 1:true, 2:false },
+    allChip:'Wszystkie',
+  };
+
+  set(patch) { this.setState(patch); }
+  flash(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: '' }), 2400);
+  }
+  sw(on) { return { track: on ? G : '#D3D1C7', knob: on ? '21px' : '3px' }; }
+
+  step(key, base, dir) {
+    const m = String(base).match(/^([\d.,]+)\s*(.*)$/);
+    if (!m) return;
+    const unit = m[2] || '';
+    const stepBy = unit === 'g' || unit === 'ml' ? 50 : (unit === 'l' ? 0.5 : 1);
+    const currentRaw = this.state.qty[key];
+    const current = currentRaw !== undefined ? currentRaw : parseFloat(m[1].replace(',', '.'));
+    const next = Math.max(0, Math.round((current + dir * stepBy) * 10) / 10);
+    this.setState(p => ({ qty: { ...p.qty, [key]: next } }));
+  }
+
+  qtyOf(key, base) {
+    const v = this.state.qty[key];
+    if (v === undefined) return base;
+    const unit = (String(base).match(/^[\d.,]+\s*(.*)$/) || [])[1] || '';
+    return String(v).replace('.', ',') + (unit ? ' ' + unit : '');
+  }
+
+  matched() {
+    const s = this.state;
+    return DATA.filter(r => r.meal === s.meal && r.taste === s.taste && r.diff === s.diff && r.who === s.who);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const go = screen => () => this.setState({ screen });
+    const list = this.matched();
+    const cur = DATA.find(r => r.id === s.current) || DATA[0];
+    const n = list.length;
+    const plural = k => k === 1 ? ' propozycja' : (k > 1 && k < 5 ? ' propozycje' : ' propozycji');
+
+    const screens = ['welcome','name','intro','notifPerm','fridge','fridgeEmpty','manual','scan','perm','scanNone','error','found','generator','loading','results','resultsEmpty','detail','all','search','favorites','favEmptyDemo','shopping','history','more','settings','specTokens','specComp','specNav'];
+    const sMap = {};
+    screens.forEach(k => sMap[k] = s.screen === k);
+
+    const navItems = [
+      ['welcome','Welcome screen'],['name','Twoje imię'],['intro','Wprowadzenie'],['notifPerm','Zgoda na powiadomienia'],
+      ['fridge','Lodówka'],['fridgeEmpty','Lodówka — pusta'],['manual','Dodaj produkt'],
+      ['scan','Skan / aparat'],['perm','Brak zgody na kamerę'],['scanNone','Skan bez wyników'],['error','Błąd AI / brak sieci'],
+      ['found','Rozpoznane produkty'],['generator','Generator przepisów'],['loading','Ładowanie propozycji'],
+      ['results','Propozycje'],['resultsEmpty','Propozycje — brak'],['detail','Szczegóły przepisu'],
+      ['all','Wszystkie przepisy'],['search','Szukaj przepisu'],
+      ['favorites','Ulubione'],['favEmptyDemo','Ulubione — puste'],['shopping','Lista zakupów'],
+      ['history','Historia'],['more','Więcej'],['settings','Ustawienia / konto'],
+      ['specTokens','Spec — tokeny i typografia'],['specComp','Spec — komponenty'],['specNav','Spec — nawigacja i ikony'],
+    ];
+
+    const prefGroup = (key, label, opts, note) => ({
+      label,
+      hasNote: !!note, note: note || '',
+      opts: opts.map(o => {
+        const on = s[key] === (o.value || o.label);
+        return {
+          label: o.label,
+          bg: on ? G : '#FFFFFF', fg: on ? '#FFFFFF' : '#2C2C2A',
+          bd: on ? G : '#D3D1C7',
+          font: (on ? '600' : '500') + ' 13.5px/1.3 Outfit,sans-serif',
+          pick: () => this.setState({ [key]: o.value || o.label }),
+        };
+      }),
+    });
+
+    const openRecipe = (id, from) => () => this.setState({ screen:'detail', current:id, from, cooked:false });
+
+    const chipOn = (label, active, pick) => ({
+      label, pick,
+      bg: label === active ? G : '#FFFFFF',
+      fg: label === active ? '#FFFFFF' : '#2C2C2A',
+      bd: label === active ? G : '#D3D1C7',
+    });
+
+    const cookedItems = cur.ing.filter(i => i[2] === 'masz');
+
+    return {
+      s: sMap,
+      nav: navItems.map(([key, label], i) => ({
+        i: String(i + 1).padStart(2, '0'), label,
+        bg: s.screen === key ? '#fff' : 'transparent',
+        fg: s.screen === key ? '#2C2C2A' : '#888780',
+        num: s.screen === key ? GT : '#888780',
+        pick: () => this.setState({ screen: key, cooked:false }),
+      })),
+
+      goWelcome: go('welcome'),
+      goName: go('name'),
+      nameValue: s.name,
+      nameCta: s.name.trim() ? 'Cześć, ' + s.name.trim() + ' — dalej' : 'Dalej',
+      greeting: s.name.trim() ? 'Cześć, ' + s.name.trim() : 'Cześć',
+      setName: e => this.setState({ name: e.target.value }),
+      goIntro: () => this.setState({ screen:'intro', intro:0 }),
+      goFridge: go('fridge'), goScan: () => this.setState({ screen:'scan', scanning:false }),
+      goManual: go('manual'), goGenerator: go('generator'), goMore: go('more'),
+
+      intro: { ...INTRO[s.intro] },
+      introDots: INTRO.map((_, i) => ({ w: i === s.intro ? '20px' : '7px', bg: i === s.intro ? G : '#D3D1C7' })),
+      introBack: () => s.intro > 0 ? this.setState({ intro: s.intro - 1 }) : this.setState({ screen:'name' }),
+      introNext: () => s.intro < 2 ? this.setState({ intro: s.intro + 1 }) : this.setState({ screen:'notifPerm' }),
+
+      fridgeCount: (FRIDGE.length - Object.keys(s.removed).filter(k => s.removed[k]).length) + ' produktów',
+      editing: s.editing, notEditing: !s.editing,
+      editLabel: s.editing ? 'Gotowe' : 'Edytuj',
+      toggleEdit: () => this.setState({ editing: !s.editing }),
+      expiring: [
+        { name:'Jogurt naturalny', days:'został 1 dzień', color:'#993C1D', chipBg:'#FAECE7', qty:'400 g', ...prodThumb('Jogurt naturalny') },
+        { name:'Szpinak', days:'zostały 2 dni', color:'#993C1D', chipBg:'#FAECE7', qty:'200 g', ...prodThumb('Szpinak') },
+      ],
+      fridge: FRIDGE.filter((_, i) => !s.removed['f' + i]).map(([name, cat, qty], i) => ({
+        name, cat, qty: this.qtyOf('f' + name, qty), ...prodThumb(name),
+        inc: () => this.step('f' + name, qty, 1), dec: () => this.step('f' + name, qty, -1),
+        open: () => this.setState({ editSheet:true, editName:name, editCat:cat, editQty:(String(qty).match(/[\d.,]+/) || [''])[0], editUnit:(String(qty).match(/[^\d.,\s]+$/) || [''])[0] }),
+        del: () => { this.setState(p => ({ removed: { ...p.removed, ['f' + i]: true } })); this.flash('Usunięto „' + name + '” z lodówki'); },
+      })),
+      suggestions: [['Ziemniaki'],['Cebula'],['Twaróg'],['Śmietana 30%'],['Pomidory'],['Ryż']].map(([name]) => ({ name })),
+
+      toast: s.toast, hasToast: !!s.toast,
+
+      editSheet: s.editSheet,
+      closeSheet: () => this.setState({ editSheet:false }),
+      editName: s.editName, editQty: s.editQty, editDate: s.editDate,
+      setEditName: e => this.setState({ editName: e.target.value }),
+      setEditQty: e => this.setState({ editQty: e.target.value }),
+      setEditDate: e => this.setState({ editDate: e.target.value }),
+      editCats: CATS.map(c => chipOn(c, s.editCat, () => this.setState({ editCat: c }))),
+      editUnits: UNITS.map(u => chipOn(u, s.editUnit, () => this.setState({ editUnit: u }))),
+      saveEdit: () => { this.setState({ editSheet:false }); this.flash('Zapisano zmiany w „' + s.editName + '”'); },
+      deleteEdit: () => { this.setState({ editSheet:false }); this.flash('Usunięto „' + s.editName + '” z lodówki'); },
+
+      newName: s.newName, newQty: s.newQty, newDate: s.newDate,
+      setNewName: e => this.setState({ newName: e.target.value }),
+      setNewQty: e => this.setState({ newQty: e.target.value }),
+      setNewDate: e => this.setState({ newDate: e.target.value }),
+      newCats: CATS.map(c => chipOn(c, s.newCat, () => this.setState({ newCat: c }))),
+      newUnits: UNITS.map(u => chipOn(u, s.newUnit, () => this.setState({ newUnit: u }))),
+      newDateHint: s.newDate ? 'Powiadomimy Cię 2 dni przed tą datą.' : 'Bez daty produkt nie trafi do sekcji „Zużyj wkrótce”.',
+      newValid: !!s.newName.trim(),
+      newCtaBg: s.newName.trim() ? G : '#D3D1C7',
+      newCtaFg: s.newName.trim() ? '#FFFFFF' : '#888780',
+      saveNew: () => { this.setState({ screen:'fridge' }); this.flash('Dodano „' + s.newName + '” do lodówki'); },
+      datePresets: ['+2 dni','+5 dni','+tydzień','bez daty'].map(label => ({
+        label, pick: () => this.setState({ newDate: label === 'bez daty' ? '' : label }),
+        bg: s.newDate === label ? G : '#FFFFFF', fg: s.newDate === label ? '#FFFFFF' : '#2C2C2A',
+        bd: s.newDate === label ? G : '#D3D1C7',
+      })),
+
+      searchQ: s.searchQ,
+      setSearch: e => this.setState({ searchQ: e.target.value }),
+      clearSearch: () => this.setState({ searchQ: '' }),
+      searchHits: DATA.filter(r => {
+        const q = s.searchQ.trim().toLowerCase();
+        if (!q) return false;
+        return r.title.toLowerCase().includes(q) || r.ing.some(i => i[0].toLowerCase().includes(q));
+      }).map(r => ({
+        img: dishImg(r.title), title: r.title, meta: r.time + ' · ' + r.meal + ' · ' + r.diff,
+        open: openRecipe(r.id, 'search'),
+      })),
+      searchCount: s.searchQ.trim() ? DATA.filter(r => r.title.toLowerCase().includes(s.searchQ.trim().toLowerCase()) || r.ing.some(i => i[0].toLowerCase().includes(s.searchQ.trim().toLowerCase()))).length + ' wyników dla „' + s.searchQ.trim() + '”' : 'Wpisz nazwę przepisu lub składnika',
+      searchEmpty: !!s.searchQ.trim() && DATA.filter(r => r.title.toLowerCase().includes(s.searchQ.trim().toLowerCase()) || r.ing.some(i => i[0].toLowerCase().includes(s.searchQ.trim().toLowerCase()))).length === 0,
+      searchIdle: !s.searchQ.trim(),
+      searchRecent: ['jajka','szpinak','na słodko','20 min'].map(label => ({ label, pick: () => this.setState({ searchQ: label }) })),
+
+      shopList: SHOP.map(([name, amount, why], i) => {
+        const off = !!s.shopOff[i];
+        return {
+          name, amount, why,
+          mark: off ? '✓' : '',
+          boxBg: off ? G : 'transparent', boxBd: off ? G : '#D3D1C7',
+          nameColor: off ? '#888780' : '#2C2C2A',
+          deco: off ? 'line-through' : 'none',
+          toggle: () => this.setState(p => ({ shopOff: { ...p.shopOff, [i]: !p.shopOff[i] } })),
+        };
+      }),
+      shopLeft: SHOP.length - Object.keys(s.shopOff).filter(k => s.shopOff[k]).length + ' z ' + SHOP.length + ' do kupienia',
+      shopShare: () => this.flash('Lista skopiowana do schowka'),
+
+      notifAllow: () => { this.setState({ notifChoice:'allow', screen:'fridge' }); this.flash('Powiadomienia włączone'); },
+      notifSkip: () => this.setState({ notifChoice:'skip', screen:'fridge' }),
+      notifRows: [
+        ['Produkty tracące świeżość','2 dni przed końcem terminu'],
+        ['Pomysł na dziś','codziennie o 17:00, jedna propozycja'],
+        ['Po ugotowaniu','przypomnienie o uzupełnieniu składników'],
+      ].map(([label, desc]) => ({ label, desc })),
+
+      skeletons: [1,2,3,4,5].map(i => ({ i })),
+      goLoading: () => {
+        this.setState({ screen:'loading' });
+        setTimeout(() => this.setState({ screen:'results' }), 1600);
+      },
+      retry: () => this.setState({ screen:'scan', scanning:false }),
+      goSearch: go('search'), goShopping: go('shopping'), goPerm: go('perm'),
+
+      tokenGroups: TOKENS.map(([label, rows]) => ({
+        label,
+        rows: rows.map(([name, hex, use, on]) => ({ name, hex, use, on })),
+      })),
+      typeRows: TYPE.map(([name, size, weight, lh, ls, family, use]) => ({
+        name, use,
+        spec: size + ' / ' + weight + ' / ' + lh + (ls !== '0' ? ' / ' + ls : ''),
+        family,
+        sample: 'Zużyj wkrótce',
+        style: weight + ' ' + size + 'px/' + lh + " '" + family + "',sans-serif",
+      })),
+      spaceRows: SPACE.map(([n, px]) => ({ name: 'space-' + n, px: px + ' px', w: px + 'px' })),
+      radiusRows: RADIUS.map(([name, px, use]) => ({ name, px: px + ' px', use, r: px + 'px' })),
+      navRows: NAVMAP.map(([label, screens2, stack]) => ({ label, screens: screens2, stack })),
+      iconRows: ICONS.map(([label, icon]) => ({ label, icon, url: 'url(https://unpkg.com/lucide-static@0.460.0/icons/' + icon + '.svg)' })),
+
+      scanning: s.scanning,
+      scanHint: s.scanning ? 'Rozpoznaję produkty…' : 'Zrób zdjęcie lodówki, wybierz je z galerii albo dodaj produkty ręcznie',
+      doScan: () => {
+        if (s.scanning) return;
+        this.setState({ scanning:true });
+        setTimeout(() => this.setState({ screen:'found', scanning:false }), 1800);
+      },
+      found: FOUND.filter((_, i) => !s.removed['r' + i]).map(([name, meta, qty, check, cat], i) => {
+        const confirmed = !!s.checked['r' + i];
+        return {
+          name, qty: this.qtyOf('r' + name, qty),
+          meta: confirmed ? 'potwierdzone przez Ciebie' : meta,
+          needsCheck: check && !confirmed,
+          titleColor: '#2C2C2A',
+          metaColor: (check && !confirmed) ? '#993C1D' : '#888780',
+          confirm: () => this.setState(p => ({ checked: { ...p.checked, ['r' + i]: true } })),
+          inc: () => this.step('r' + name, qty, 1), dec: () => this.step('r' + name, qty, -1),
+          del: () => this.setState(p => ({ removed: { ...p.removed, ['r' + i]: true } })),
+        };
+      }),
+
+      prefGroups: [
+        prefGroup('meal', 'Rodzaj posiłku', [{label:'Śniadanie'},{label:'Obiad'},{label:'Kolacja'}]),
+        prefGroup('taste', 'Profil smakowy', [{label:'Na słodko'},{label:'Na słono'}]),
+        prefGroup('diff', 'Poziom trudności', [{label:'Proste'},{label:'Złożone'}], 'Proste = także dla dzieci. Złożone = więcej kroków i technik.'),
+        prefGroup('who', 'Dla kogo', [{label:'Dla dzieci'},{label:'Dla dorosłych'}]),
+      ],
+      matchCount: n + ' pasuje',
+      generate: () => {
+        this.setState({ screen:'loading' });
+        setTimeout(() => this.setState({ screen:'results' }), 1500);
+      },
+
+      countLabel: n + plural(n) + ' · min. 3 składniki z lodówki',
+      activePrefs: [s.meal, s.taste, s.diff, s.who].map(label => ({ label })),
+      empty: n === 0,
+      recipes: list.map(r => ({ ...r, img: dishImg(r.title), open: openRecipe(r.id, 'results') })),
+
+      current: cur,
+      currentImg: dishImg(cur.title),
+      nutrition: cur.nut.map(([v, k]) => ({ v, k })),
+      ingredients: cur.ing.map(([name, amount, tag]) => ({ name, amount, tag, color: tag === 'masz' ? GT : R })),
+      steps: cur.steps.map((text, i) => ({ n: i + 1, text })),
+      back: () => this.setState({ screen: s.from, cooked:false }),
+      favColor: s.fav[cur.id] ? CORAL : '#D3D1C7',
+      toggleFav: () => this.setState(p => ({ fav: { ...p.fav, [cur.id]: !p.fav[cur.id] } })),
+
+      cooked: s.cooked,
+      openCooked: () => this.setState({ cooked:true }),
+      closeCooked: () => this.setState({ cooked:false }),
+      confirmCooked: () => this.setState({ cooked:false, screen:'fridge' }),
+      consumed: cookedItems.map(([name, amount], i) => {
+        const off = !!s.consumedOff[i];
+        return {
+          name, delta: off ? 'bez zmian' : '− ' + amount,
+          mark: off ? '' : '✓',
+          boxBg: off ? 'transparent' : G, boxBd: off ? '#D3D1C7' : G,
+          toggle: () => this.setState(p => ({ consumedOff: { ...p.consumedOff, [i]: !p.consumedOff[i] } })),
+        };
+      }),
+      swReminder: this.sw(s.reminder).track, knobReminder: this.sw(s.reminder).knob,
+      toggleReminder: () => this.setState({ reminder: !s.reminder }),
+
+      allChips: ['Wszystkie','Śniadania','Obiady','Kolacje','Na słodko','Wegetariańskie'].map(label => {
+        const on = s.allChip === label;
+        return { label, bg: on ? '#2C2C2A' : '#fff', fg: on ? '#fff' : '#2C2C2A', bd: on ? '#2C2C2A' : '#D3D1C7', pick: () => this.setState({ allChip: label }) };
+      }),
+      allList: DATA.map(r => ({
+        img: dishImg(r.title), title: r.title, meta: r.time + ' · ' + r.meal + ' · ' + r.diff,
+        match: r.match, matchColor: parseInt(r.match) >= 85 ? GT : '#888780',
+        open: openRecipe(r.id, 'all'),
+      })),
+
+      favList: DATA.filter(r => s.fav[r.id]).map(r => ({
+        img: dishImg(r.title), title: r.title, meta: r.time + ' · ' + r.meal + ' · ' + r.diff, open: openRecipe(r.id, 'favorites'),
+      })),
+      favEmpty: DATA.filter(r => s.fav[r.id]).length === 0,
+
+      history: HISTORY.map(([when, title, body, action, dot]) => ({ when, title, body, action, dot })),
+
+      moreItems: [
+        { label:'Lista zakupów', desc:'5 brakujących składników z przepisów', pick: go('shopping') },
+        { label:'Historia', desc:'Skany i wygenerowane listy', pick: go('history') },
+        { label:'Ustawienia i konto', desc:'Zgody RODO, powiadomienia, Premium', pick: go('settings') },
+        { label:'Pomoc i kontakt', desc:'FAQ, zgłoś błędne rozpoznanie', pick: () => {} },
+      ],
+
+      consents: CONSENTS.map(([label, desc], i) => {
+        const on = !!s.consents[i];
+        return { label, desc, ...this.sw(on), toggle: () => this.setState(p => ({ consents: { ...p.consents, [i]: !p.consents[i] } })) };
+      }),
+      notifs: NOTIFS.map(([label, desc], i) => {
+        const on = !!s.notifs[i];
+        return { label, desc, ...this.sw(on), toggle: () => this.setState(p => ({ notifs: { ...p.notifs, [i]: !p.notifs[i] } })) };
+      }),
+
+      showTabs: !['welcome','name','intro','notifPerm','scan','perm','specTokens','specComp','specNav'].includes(s.screen),
+      tabs: [
+        ['Lodówka','fridge',['fridge','fridgeEmpty','manual','found','scanNone','error'],'refrigerator'],
+        ['Generator','generator',['generator','loading','results','resultsEmpty'],'sparkles'],
+        ['Przepisy','all',['all','search'],'book-open'],
+        ['Ulubione','favorites',['favorites','favEmptyDemo'],'heart'],
+        ['Więcej','more',['more','history','settings','shopping'],'ellipsis'],
+      ].map(([label, target, group, icon]) => {
+        const on = group.includes(s.screen) || (s.screen === 'detail' && group.includes(s.from));
+        return {
+          label,
+          iconBg: 'url(https://unpkg.com/lucide-static@0.460.0/icons/' + icon + '.svg)',
+          iconOpacity: on ? 1 : .45,
+          fg: on ? '#2C2C2A' : '#888780',
+          pick: () => this.setState({ screen: target, cooked:false }),
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>
