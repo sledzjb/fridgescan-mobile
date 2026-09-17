@@ -7,7 +7,7 @@ import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '..
 import { useProductsStore } from '../../store/useProductsStore';
 import { useFavoritesStore } from '../../store/useFavoritesStore';
 import { useShoppingListStore } from '../../store/useShoppingListStore';
-import { RECIPES } from '../../data/recipes';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { matchRecipe } from '../../utils/recipeMatch';
 import { daysUntil } from '../../utils/date';
 import { pluralizePl } from '../../utils/pluralize';
@@ -28,16 +28,18 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
   const isFavorite = useFavoritesStore((s) => s.isFavorite(route.params.recipeId));
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
   const addShoppingItemIfMissing = useShoppingListStore((s) => s.addIfMissing);
+  const { recipes, isLoading: recipesLoading, hasHydrated: recipesHydrated } = useRecipesCatalog();
 
-  const recipe = RECIPES.find((r) => r.id === route.params.recipeId);
+  const recipe = recipes.find((r) => r.id === route.params.recipeId);
   const match = recipe ? matchRecipe(recipe, products) : null;
+  const stillResolving = !recipe && (recipesLoading || !recipesHydrated);
 
   useEffect(() => {
-    if (!recipe) {
+    if (!recipe && !stillResolving) {
       navigation.goBack();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe]);
+  }, [recipe, stillResolving]);
 
   useEffect(() => {
     if (!recipe || !match) return;
@@ -56,8 +58,8 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
     .map((i) => {
       const target = i.name.trim().toLowerCase();
       const product = products.find((p) => {
-        const name = p.name.trim().toLowerCase();
-        return name === target || name.includes(target) || target.includes(name);
+        const names = [p.name, p.genericName].filter((n): n is string => !!n).map((n) => n.trim().toLowerCase());
+        return names.some((name) => name === target || name.includes(target) || target.includes(name));
       });
       return product?.expiryDate ? { name: product.name, days: daysUntil(product.expiryDate) } : null;
     })

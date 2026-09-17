@@ -3,9 +3,10 @@ import { View, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import { AppText, Button, Card, Chip } from '../../components';
+import { AppText, Button, Card, Chip, MockDataBanner } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { pluralizePl } from '../../utils/pluralize';
 import { matchAllRecipes, findLoosestFilter } from '../../utils/recipeMatch';
 import { GeneratorStackParamList } from '../../navigation/types';
@@ -15,8 +16,9 @@ type Props = NativeStackScreenProps<GeneratorStackParamList, 'RecipeResultsEmpty
 export function RecipeResultsEmptyScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
+  const { recipes, source: dataSource } = useRecipesCatalog();
   const { filters } = route.params;
-  const matches = matchAllRecipes(products);
+  const matches = matchAllRecipes(recipes, products);
   const suggestion = findLoosestFilter(matches, filters);
 
   const openFridge = () => navigation.getParent()?.navigate('FridgeTab' as never);
@@ -51,8 +53,14 @@ export function RecipeResultsEmptyScreen({ navigation, route }: Props) {
         <Chip label={filters.meal} state="filterActive" />
         <Chip label={filters.taste} state="filterActive" />
         <Chip label={filters.difficulty} state="filterActive" />
-        <Chip label={filters.audience} state="filterActive" />
+        <Chip label={filters.diet} state="filterActive" />
       </View>
+
+      {dataSource === 'mock' && (
+        <View style={styles.banner}>
+          <MockDataBanner />
+        </View>
+      )}
 
       <Card style={styles.card} radius={20} padding={0}>
         <View style={styles.cardInner}>
@@ -106,6 +114,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.space2,
+    marginTop: spacing.space4,
+  },
+  banner: {
     marginTop: spacing.space4,
   },
   card: {

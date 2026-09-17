@@ -3,9 +3,10 @@ import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChefHat } from 'lucide-react-native';
-import { AppText, Badge, Chip } from '../../components';
+import { AppText, Badge, Chip, MockDataBanner } from '../../components';
 import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { daysUntil } from '../../utils/date';
 import { pluralizePl } from '../../utils/pluralize';
 import { matchAllRecipes, filterRecipes, RecipeMatch } from '../../utils/recipeMatch';
@@ -20,8 +21,8 @@ function usesExpiringSoonLine(match: RecipeMatch, products: ReturnType<typeof us
     .forEach((ing) => {
       const target = ing.name.trim().toLowerCase();
       const product = products.find((p) => {
-        const name = p.name.trim().toLowerCase();
-        return name === target || name.includes(target) || target.includes(name);
+        const names = [p.name, p.genericName].filter((n): n is string => !!n).map((n) => n.trim().toLowerCase());
+        return names.some((name) => name === target || name.includes(target) || target.includes(name));
       });
       if (product?.expiryDate) {
         const days = daysUntil(product.expiryDate);
@@ -39,7 +40,8 @@ function usesExpiringSoonLine(match: RecipeMatch, products: ReturnType<typeof us
 export function RecipeResultsScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
-  const matches = matchAllRecipes(products);
+  const { recipes, source: dataSource } = useRecipesCatalog();
+  const matches = matchAllRecipes(recipes, products);
   const results = filterRecipes(matches, route.params.filters);
   const { filters } = route.params;
 
@@ -63,8 +65,14 @@ export function RecipeResultsScreen({ navigation, route }: Props) {
         <Chip label={filters.meal} state="filterActive" />
         <Chip label={filters.taste} state="filterActive" />
         <Chip label={filters.difficulty} state="filterActive" />
-        <Chip label={filters.audience} state="filterActive" />
+        <Chip label={filters.diet} state="filterActive" />
       </View>
+
+      {dataSource === 'mock' && (
+        <View style={styles.banner}>
+          <MockDataBanner />
+        </View>
+      )}
 
       <View style={styles.list}>
         {results.map((match) => {
@@ -126,6 +134,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.space2,
+    marginTop: spacing.space4,
+  },
+  banner: {
     marginTop: spacing.space4,
   },
   list: {

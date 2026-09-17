@@ -9,8 +9,9 @@ import { ScanStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<ScanStackParamList, 'ScanError'>;
 
-export function ScanErrorScreen({ navigation }: Props) {
+export function ScanErrorScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const code = route.params?.code ?? 'NETWORK_TIMEOUT';
   const time = useMemo(
     () => new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     []
@@ -46,7 +47,7 @@ export function ScanErrorScreen({ navigation }: Props) {
 
           <View style={styles.techBlock}>
             <AppText style={styles.techText} color={colors.mute}>
-              {`błąd: NETWORK_TIMEOUT · ${time}`}
+              {`błąd: ${code} · ${time}`}
             </AppText>
           </View>
         </View>

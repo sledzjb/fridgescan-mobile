@@ -1,7 +1,7 @@
 export type Meal = 'Śniadanie' | 'Obiad' | 'Kolacja';
 export type Taste = 'Na słodko' | 'Na słono';
 export type Difficulty = 'Proste' | 'Złożone';
-export type Audience = 'Dla dzieci' | 'Dla dorosłych';
+export type DietCategory = 'Wegańskie' | 'Wegetariańskie' | 'Bezglutenowe' | 'Standardowa';
 
 export type NutrientRow = { value: string; unit: string };
 export type RecipeIngredient = { name: string; qty: string };
@@ -12,7 +12,7 @@ export type Recipe = {
   meal: Meal;
   taste: Taste;
   difficulty: Difficulty;
-  audience: Audience;
+  diet: DietCategory;
   time: string;
   vegetarian: boolean;
   nutrition: NutrientRow[];
@@ -28,7 +28,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Śniadanie',
     taste: 'Na słono',
     difficulty: 'Proste',
-    audience: 'Dla dzieci',
+    diet: 'Wegetariańskie',
     time: '15 min',
     vegetarian: true,
     nutrition: [
@@ -57,7 +57,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Śniadanie',
     taste: 'Na słono',
     difficulty: 'Proste',
-    audience: 'Dla dzieci',
+    diet: 'Wegetariańskie',
     time: '12 min',
     vegetarian: true,
     nutrition: [
@@ -85,7 +85,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Śniadanie',
     taste: 'Na słodko',
     difficulty: 'Proste',
-    audience: 'Dla dzieci',
+    diet: 'Wegetariańskie',
     time: '25 min',
     vegetarian: true,
     nutrition: [
@@ -114,7 +114,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Obiad',
     taste: 'Na słono',
     difficulty: 'Proste',
-    audience: 'Dla dzieci',
+    diet: 'Standardowa',
     time: '30 min',
     vegetarian: false,
     nutrition: [
@@ -143,7 +143,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Obiad',
     taste: 'Na słono',
     difficulty: 'Złożone',
-    audience: 'Dla dorosłych',
+    diet: 'Wegetariańskie',
     time: '45 min',
     vegetarian: true,
     nutrition: [
@@ -172,7 +172,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Kolacja',
     taste: 'Na słono',
     difficulty: 'Złożone',
-    audience: 'Dla dorosłych',
+    diet: 'Wegetariańskie',
     time: '55 min',
     vegetarian: true,
     nutrition: [
@@ -201,7 +201,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Kolacja',
     taste: 'Na słono',
     difficulty: 'Proste',
-    audience: 'Dla dzieci',
+    diet: 'Standardowa',
     time: '20 min',
     vegetarian: false,
     nutrition: [
@@ -230,7 +230,7 @@ export const RECIPES: Recipe[] = [
     meal: 'Kolacja',
     taste: 'Na słodko',
     difficulty: 'Proste',
-    audience: 'Dla dzieci',
+    diet: 'Wegetariańskie',
     time: '20 min',
     vegetarian: true,
     nutrition: [

@@ -1,25 +1,25 @@
 import { Product } from '../store/useProductsStore';
-import { Recipe, RecipeIngredient, Meal, Taste, Difficulty, Audience, RECIPES } from '../data/recipes';
+import { Recipe, RecipeIngredient, Meal, Taste, Difficulty, DietCategory } from '../data/recipes';
 
 export type GeneratorFilters = {
   meal: Meal;
   taste: Taste;
   difficulty: Difficulty;
-  audience: Audience;
+  diet: DietCategory;
 };
 
 export const DEFAULT_FILTERS: GeneratorFilters = {
   meal: 'Śniadanie',
   taste: 'Na słono',
   difficulty: 'Proste',
-  audience: 'Dla dzieci',
+  diet: 'Standardowa',
 };
 
 const FILTER_OPTIONS: { [K in keyof GeneratorFilters]: GeneratorFilters[K][] } = {
   meal: ['Śniadanie', 'Obiad', 'Kolacja'],
   taste: ['Na słodko', 'Na słono'],
   difficulty: ['Proste', 'Złożone'],
-  audience: ['Dla dzieci', 'Dla dorosłych'],
+  diet: ['Wegańskie', 'Wegetariańskie', 'Bezglutenowe', 'Standardowa'],
 };
 
 export type IngredientStatus = RecipeIngredient & { have: boolean };
@@ -43,8 +43,8 @@ function normalize(name: string): string {
 function ingredientInFridge(ingredientName: string, products: Product[]): boolean {
   const target = normalize(ingredientName);
   return products.some((p) => {
-    const productName = normalize(p.name);
-    return productName === target || productName.includes(target) || target.includes(productName);
+    const names = [p.name, p.genericName].filter((n): n is string => !!n).map(normalize);
+    return names.some((productName) => productName === target || productName.includes(target) || target.includes(productName));
   });
 }
 
@@ -65,8 +65,8 @@ export function matchRecipe(recipe: Recipe, products: Product[]): RecipeMatch {
   };
 }
 
-export function matchAllRecipes(products: Product[]): RecipeMatch[] {
-  return RECIPES.map((r) => matchRecipe(r, products));
+export function matchAllRecipes(recipes: Recipe[], products: Product[]): RecipeMatch[] {
+  return recipes.map((r) => matchRecipe(r, products));
 }
 
 function matchesFilters(recipe: Recipe, filters: GeneratorFilters): boolean {
@@ -74,7 +74,7 @@ function matchesFilters(recipe: Recipe, filters: GeneratorFilters): boolean {
     recipe.meal === filters.meal &&
     recipe.taste === filters.taste &&
     recipe.difficulty === filters.difficulty &&
-    recipe.audience === filters.audience
+    recipe.diet === filters.diet
   );
 }
 

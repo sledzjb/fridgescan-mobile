@@ -5,9 +5,10 @@ import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { ArrowLeft, Camera, Image as ImageIcon, Plus } from 'lucide-react-native';
-import { AppText, Button, Badge } from '../../components';
+import { AppText, Button } from '../../components';
 import { colors, alpha, spacing, radius } from '../../theme';
-import { mockRecognizeFridgePhoto, RecognitionOutcome } from '../../services/mockRecognition';
+import { RecognitionOutcome } from '../../services/mockRecognition';
+import { recognizeFridgePhoto, CapturedPhoto } from '../../services/gemini/recognizeFridgePhoto';
 import { ScanStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<ScanStackParamList, 'Scan'>;
@@ -18,7 +19,7 @@ export function ScanScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [busy, setBusy] = useState(false);
-  const [visibleBadges, setVisibleBadges] = useState(0);
+  const [cameraActive, setCameraActive] = useState(true);
   const cameraRef = useRef<CameraView>(null);
   const scanLineAnim = useRef(new Animated.Value(0)).current;
 
@@ -31,11 +32,8 @@ export function ScanScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (!busy) {
-      setVisibleBadges(0);
       return;
     }
-    const t1 = setTimeout(() => setVisibleBadges(1), 500);
-    const t2 = setTimeout(() => setVisibleBadges(2), 1000);
     scanLineAnim.setValue(0);
     const loop = Animated.loop(
       Animated.sequence([
@@ -55,8 +53,6 @@ export function ScanScreen({ navigation }: Props) {
     );
     loop.start();
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
       loop.stop();
     };
   }, [busy, scanLineAnim]);
@@ -71,6 +67,10 @@ export function ScanScreen({ navigation }: Props) {
 
   const handleOutcome = (outcome: RecognitionOutcome) => {
     setBusy(false);
+    // Nie polegamy na tym, że odmontowanie ekranu przez nawigację zwolni kamerę - ScanNoResults/
+    // ScanError to sąsiednie trasy w tym samym stosie, więc CameraView mógłby zostać zamontowany
+    // pod spodem i przeglądarka/system dalej pokazywałyby "kamera w użyciu".
+    setCameraActive(false);
     if (outcome.type === 'success') {
       navigation.getParent()?.navigate(
         'MainTabs',
@@ -79,32 +79,41 @@ export function ScanScreen({ navigation }: Props) {
     } else if (outcome.type === 'empty') {
       navigation.navigate('ScanNoResults');
     } else {
-      navigation.navigate('ScanError');
+      navigation.navigate('ScanError', { code: outcome.code });
     }
   };
 
-  const runScan = async () => {
+  const runScan = async (photo: CapturedPhoto) => {
     if (busy) return;
     setBusy(true);
-    const outcome = await mockRecognizeFridgePhoto();
+    const outcome = await recognizeFridgePhoto(photo);
     handleOutcome(outcome);
   };
 
   const handleShutter = async () => {
     if (busy) return;
     try {
-      await cameraRef.current?.takePictureAsync({ quality: 0.5 });
+      const photo = await cameraRef.current?.takePictureAsync({ quality: 0.5, base64: true });
+      if (!photo?.base64) {
+        handleOutcome({ type: 'error', code: 'CAPTURE_FAILED' });
+        return;
+      }
+      runScan({ base64: photo.base64, mimeType: 'image/jpeg' });
     } catch {
-      // Rozpoznawanie jest zamockowane - nieudane realne ujęcie nie blokuje przepływu.
+      handleOutcome({ type: 'error', code: 'CAPTURE_FAILED' });
     }
-    runScan();
   };
 
   const handleGallery = async () => {
     if (busy) return;
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5 });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5, base64: true });
     if (result.canceled) return;
-    runScan();
+    const asset = result.assets[0];
+    if (!asset?.base64) {
+      handleOutcome({ type: 'error', code: 'CAPTURE_FAILED' });
+      return;
+    }
+    runScan({ base64: asset.base64, mimeType: asset.mimeType ?? 'image/jpeg' });
   };
 
   if (!permission) {
@@ -129,7 +138,7 @@ export function ScanScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+      {cameraActive && <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />}
 
       <View style={[styles.topBar, { top: insets.top + 20 }]}>
         <Pressable onPress={closeModal} style={styles.backCircle} hitSlop={8}>
@@ -143,16 +152,6 @@ export function ScanScreen({ navigation }: Props) {
       {busy && (
         <View style={styles.scanArea} pointerEvents="none">
           <Animated.View style={[styles.scanLine, { transform: [{ translateY: scanLineTranslateY }] }]} />
-          {visibleBadges >= 1 && (
-            <View style={[styles.badgeSlot, { top: 60, left: 24 }]}>
-              <Badge label="jajka · 96%" variant="recognized" />
-            </View>
-          )}
-          {visibleBadges >= 2 && (
-            <View style={[styles.badgeSlot, { top: 150, right: 32 }]}>
-              <Badge label="szpinak? · 64%" variant="uncertain" />
-            </View>
-          )}
         </View>
       )}
 
@@ -256,9 +255,6 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: colors.accent400,
     marginHorizontal: 20,
-  },
-  badgeSlot: {
-    position: 'absolute',
   },
   bottomArea: {
     position: 'absolute',

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '../../components';
 import { colors, radius, spacing, screenPaddingHorizontal } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { useHistoryStore } from '../../store/useHistoryStore';
 import { matchAllRecipes, filterRecipes } from '../../utils/recipeMatch';
 import { pluralizePl } from '../../utils/pluralize';
@@ -17,6 +18,7 @@ const LOADING_DURATION_MS = 1500;
 export function GeneratorLoadingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
+  const { recipes } = useRecipesCatalog();
   const addHistoryEntry = useHistoryStore((s) => s.addEntry);
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -29,7 +31,7 @@ export function GeneratorLoadingScreen({ navigation, route }: Props) {
 
     const timer = setTimeout(() => {
       const { filters } = route.params;
-      const matches = matchAllRecipes(products);
+      const matches = matchAllRecipes(recipes, products);
       const results = filterRecipes(matches, filters);
       addHistoryEntry({
         type: 'generation',
@@ -54,7 +56,7 @@ export function GeneratorLoadingScreen({ navigation, route }: Props) {
     <View style={[styles.screen, { paddingTop: insets.top + spacing.space6 }]}>
       <AppText variant="h1">Szukam przepisów</AppText>
       <AppText variant="meta" color={colors.mute} style={styles.meta}>
-        {`dopasowuję 842 przepisy do ${products.length} ${pluralizePl(products.length, ['produktu', 'produktów', 'produktów'])}…`}
+        {`dopasowuję ${recipes.length} ${pluralizePl(recipes.length, ['przepis', 'przepisy', 'przepisów'])} do ${products.length} ${pluralizePl(products.length, ['produktu', 'produktów', 'produktów'])}…`}
       </AppText>
 
       <View style={styles.progressTrack}>

@@ -7,6 +7,9 @@ import { generateId } from '../utils/id';
 export type Product = {
   id: string;
   name: string;
+  /** Rodzajowa nazwa (np. "Ser żółty" dla "Ser Gouda") - ustawiana przy rozpoznaniu ze zdjęcia,
+   * używana przy dopasowywaniu do składników przepisów. Brak przy ręcznie dodanych produktach. */
+  genericName?: string;
   category: string;
   qty: number;
   unit: string;

@@ -46,7 +46,14 @@ export function RecognizedProductsScreen({ navigation, route }: Props) {
   const handleSave = () => {
     const toSave = items.filter((it) => it.name.trim().length > 0);
     toSave.forEach((it) => {
-      addProduct({ name: it.name.trim(), category: it.category, qty: it.qty, unit: it.unit, expiryDate: null });
+      addProduct({
+        name: it.name.trim(),
+        genericName: it.genericName,
+        category: it.category,
+        qty: it.qty,
+        unit: it.unit,
+        expiryDate: null,
+      });
     });
     addHistoryEntry({
       type: 'scan',
@@ -133,7 +140,7 @@ function RecognizedRow({
   return (
     <View style={!last && styles.rowDivider}>
       <ListRow
-        title=""
+        title={item.name}
         titleElement={
           item.name === '' ? (
             <Input placeholder="Nazwa produktu" value={item.name} onChangeText={onChangeName} autoFocus style={styles.inlineInput} />

@@ -11,6 +11,7 @@ import { useProductsStore } from './src/store/useProductsStore';
 import { useFavoritesStore } from './src/store/useFavoritesStore';
 import { useShoppingListStore } from './src/store/useShoppingListStore';
 import { useHistoryStore } from './src/store/useHistoryStore';
+import { useRecipesStore } from './src/store/useRecipesStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -22,13 +23,15 @@ function AppContent() {
   const favoritesHydrated = useFavoritesStore((s) => s.hasHydrated);
   const shoppingListHydrated = useShoppingListStore((s) => s.hasHydrated);
   const historyHydrated = useHistoryStore((s) => s.hasHydrated);
+  const recipesHydrated = useRecipesStore((s) => s.hasHydrated);
   const appReady =
     (fontsLoaded || !!fontError) &&
     ready &&
     productsHydrated &&
     favoritesHydrated &&
     shoppingListHydrated &&
-    historyHydrated;
+    historyHydrated &&
+    recipesHydrated;
 
   useEffect(() => {
     if (appReady) {

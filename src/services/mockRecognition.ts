@@ -3,6 +3,8 @@ import { generateId } from '../utils/id';
 export type RecognizedItem = {
   id: string;
   name: string;
+  /** Rodzajowa nazwa (np. "Ser żółty" dla "Ser Gouda") - używana przy dopasowywaniu do składników przepisów. */
+  genericName?: string;
   category: string;
   confidence: number;
   qty: number;
@@ -18,12 +20,12 @@ const SCAN_DURATION_MS = 1800;
 
 /** Dane 1:1 z sekcji „11. Rozpoznane produkty” w README (referencyjny prototyp). */
 const MOCK_ITEMS: Omit<RecognizedItem, 'id'>[] = [
-  { name: 'Jajka', category: 'Nabiał', confidence: 96, qty: 6, unit: 'szt' },
-  { name: 'Feta', category: 'Nabiał', confidence: 91, qty: 150, unit: 'g' },
-  { name: 'Mleko 3,2%', category: 'Nabiał', confidence: 90, qty: 1, unit: 'l' },
-  { name: 'Szpinak', category: 'Warzywa', confidence: 64, qty: 200, unit: 'g' },
-  { name: 'Pieczarki', category: 'Warzywa', confidence: 88, qty: 300, unit: 'g' },
-  { name: 'Jogurt naturalny', category: 'Nabiał', confidence: 84, qty: 400, unit: 'g' },
+  { name: 'Jajka', genericName: 'Jajka', category: 'Nabiał', confidence: 96, qty: 6, unit: 'szt' },
+  { name: 'Feta', genericName: 'Ser biały', category: 'Nabiał', confidence: 91, qty: 150, unit: 'g' },
+  { name: 'Mleko 3,2%', genericName: 'Mleko', category: 'Nabiał', confidence: 90, qty: 1, unit: 'l' },
+  { name: 'Szpinak', genericName: 'Szpinak', category: 'Warzywa', confidence: 64, qty: 200, unit: 'g' },
+  { name: 'Pieczarki', genericName: 'Pieczarki', category: 'Warzywa', confidence: 88, qty: 300, unit: 'g' },
+  { name: 'Jogurt naturalny', genericName: 'Jogurt', category: 'Nabiał', confidence: 84, qty: 400, unit: 'g' },
 ];
 
 function delay(ms: number): Promise<void> {

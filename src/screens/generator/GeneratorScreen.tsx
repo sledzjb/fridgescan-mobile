@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, Card } from '../../components';
 import { colors, alpha, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { daysUntil } from '../../utils/date';
 import { EXPIRY_SOON_THRESHOLD_DAYS } from '../../constants/fridge';
 import { pluralizePl } from '../../utils/pluralize';
@@ -64,9 +65,10 @@ function FilterGroup<T extends string>({
 export function GeneratorScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
+  const { recipes } = useRecipesCatalog();
   const [filters, setFilters] = useState<GeneratorFilters>(DEFAULT_FILTERS);
 
-  const matches = matchAllRecipes(products);
+  const matches = matchAllRecipes(recipes, products);
   const resultCount = filterRecipes(matches, filters).length;
   const expiringSoonCount = products.filter(
     (p) => p.expiryDate && daysUntil(p.expiryDate) <= EXPIRY_SOON_THRESHOLD_DAYS
@@ -108,10 +110,10 @@ export function GeneratorScreen({ navigation }: Props) {
           onChange={(v) => setFilter('difficulty', v)}
         />
         <FilterGroup
-          kicker="DLA KOGO"
-          options={['Dla dzieci', 'Dla dorosłych'] as const}
-          value={filters.audience}
-          onChange={(v) => setFilter('audience', v)}
+          kicker="DIETA"
+          options={['Standardowa', 'Wegetariańskie', 'Wegańskie', 'Bezglutenowe'] as const}
+          value={filters.diet}
+          onChange={(v) => setFilter('diet', v)}
         />
 
         <Card style={styles.baseCard} padding={spacing.space4}>
@@ -163,6 +165,7 @@ const styles = StyleSheet.create({
   },
   groupRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.space2,
   },
   groupNote: {

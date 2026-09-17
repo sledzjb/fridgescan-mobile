@@ -22,7 +22,7 @@ export type FridgeStackParamList = {
 export type ScanStackParamList = {
   Scan: undefined;
   ScanNoResults: undefined;
-  ScanError: undefined;
+  ScanError: { code: string } | undefined;
 };
 
 export type GeneratorStackParamList = {

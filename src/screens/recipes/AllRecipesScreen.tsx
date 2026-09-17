@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, Pressable, StyleSheet, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search } from 'lucide-react-native';
-import { AppText, Chip } from '../../components';
+import { AppText, Chip, MockDataBanner } from '../../components';
 import { colors, spacing, screenPaddingHorizontal } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
-import { RECIPES, Recipe } from '../../data/recipes';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
+import { Recipe } from '../../data/recipes';
 import { matchRecipe } from '../../utils/recipeMatch';
+import { pluralizePl } from '../../utils/pluralize';
 import { RecipeListRow } from './RecipeListRow';
 import { RecipesStackParamList } from '../../navigation/types';
 
@@ -33,22 +35,44 @@ function matchesFilter(recipe: Recipe, filter: FilterKey): boolean {
 
 type Props = NativeStackScreenProps<RecipesStackParamList, 'AllRecipes'>;
 
+/** Cały (duży) katalog jest już w pamięci ze store'a - "infinite scroll" to tylko stopniowe
+ * odsłanianie kolejnych porcji lokalnie, bez żadnych dodatkowych zapytań do API. */
+const PAGE_SIZE = 20;
+const LOAD_MORE_THRESHOLD_PX = 300;
+
 export function AllRecipesScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
+  const { recipes: allRecipes, source: dataSource } = useRecipesCatalog();
   const [filter, setFilter] = useState<FilterKey>('Wszystkie');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const recipes = RECIPES.filter((r) => matchesFilter(r, filter));
+  const filteredRecipes = allRecipes.filter((r) => matchesFilter(r, filter));
+  const recipes = filteredRecipes.slice(0, visibleCount);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filter]);
+
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+    const distanceFromBottom = contentSize.height - contentOffset.y - layoutMeasurement.height;
+    if (distanceFromBottom < LOAD_MORE_THRESHOLD_PX && visibleCount < filteredRecipes.length) {
+      setVisibleCount((c) => Math.min(c + PAGE_SIZE, filteredRecipes.length));
+    }
+  };
 
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={{ paddingTop: insets.top + spacing.space6, paddingBottom: insets.bottom + spacing.space6 }}
+      onScroll={handleScroll}
+      scrollEventThrottle={100}
     >
       <View style={styles.header}>
         <AppText variant="h1">Wszystkie przepisy</AppText>
         <AppText variant="meta" color={colors.mute} style={styles.meta}>
-          842 przepisy · niezależnie od lodówki
+          {`${allRecipes.length} ${pluralizePl(allRecipes.length, ['przepis', 'przepisy', 'przepisów'])} · niezależnie od lodówki`}
         </AppText>
 
         <Pressable style={styles.searchField} onPress={() => navigation.navigate('SearchRecipes')}>
@@ -63,6 +87,12 @@ export function AllRecipesScreen({ navigation }: Props) {
             <Chip key={f} label={f} state={filter === f ? 'filterActive' : 'default'} onPress={() => setFilter(f)} />
           ))}
         </View>
+
+        {dataSource === 'mock' && (
+          <View style={styles.banner}>
+            <MockDataBanner />
+          </View>
+        )}
       </View>
 
       <View style={styles.list}>
@@ -112,6 +142,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.space2,
+    marginTop: spacing.space4,
+  },
+  banner: {
     marginTop: spacing.space4,
   },
   list: {

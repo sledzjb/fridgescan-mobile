@@ -4,7 +4,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, Input, Chip, Card } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
-import { RECIPES } from '../../data/recipes';
+import { Recipe } from '../../data/recipes';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { pluralizePl } from '../../utils/pluralize';
 import { RecipeListRow } from './RecipeListRow';
 import { RecipesStackParamList } from '../../navigation/types';
@@ -13,7 +14,7 @@ type Props = NativeStackScreenProps<RecipesStackParamList, 'SearchRecipes'>;
 
 const RECENT_SEARCHES = ['jajka', 'szpinak', 'na słodko', '20 min'];
 
-function matchesQuery(recipe: (typeof RECIPES)[number], query: string): boolean {
+function matchesQuery(recipe: Recipe, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return false;
   if (recipe.title.toLowerCase().includes(q)) return true;
@@ -22,10 +23,11 @@ function matchesQuery(recipe: (typeof RECIPES)[number], query: string): boolean 
 
 export function SearchRecipesScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { recipes } = useRecipesCatalog();
   const [query, setQuery] = useState('');
 
   const trimmed = query.trim();
-  const results = trimmed ? RECIPES.filter((r) => matchesQuery(r, trimmed)) : [];
+  const results = trimmed ? recipes.filter((r) => matchesQuery(r, trimmed)) : [];
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.space4 }]}>
