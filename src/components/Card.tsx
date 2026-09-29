@@ -19,9 +19,9 @@ export function Card({ children, radius = radiusTokens.xl, padding, style }: Car
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     overflow: 'hidden',
   },
 });

@@ -3,10 +3,12 @@ import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
-import { ArrowLeft } from 'lucide-react-native';
-import { AppText, Button, Checkbox, Input, BottomSheet, Toast, useToast } from '../../components';
+import { X } from 'lucide-react-native';
+import { BackArrow, AppText, Button, Checkbox, Input, BottomSheet, Toast, useToast } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useShoppingListStore } from '../../store/useShoppingListStore';
+import { moveShoppingItemsToFridge } from '../../utils/shoppingToFridge';
+import { pluralizePl } from '../../utils/pluralize';
 import { MoreStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<MoreStackParamList, 'ShoppingList'>;
@@ -17,6 +19,7 @@ export function ShoppingListScreen({ navigation }: Props) {
   const toggleChecked = useShoppingListStore((s) => s.toggleChecked);
   const purgeChecked = useShoppingListStore((s) => s.purgeChecked);
   const addManual = useShoppingListStore((s) => s.addManual);
+  const removeItem = useShoppingListStore((s) => s.removeItem);
   const toast = useToast();
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [newName, setNewName] = useState('');
@@ -30,6 +33,14 @@ export function ShoppingListScreen({ navigation }: Props) {
   }, []);
 
   const uncheckedCount = items.filter((i) => !i.checked).length;
+  const checkedItems = items.filter((i) => i.checked);
+
+  const handleMoveToFridge = () => {
+    const count = checkedItems.length;
+    moveShoppingItemsToFridge(checkedItems);
+    purgeChecked();
+    toast.show(`Dodano ${count} ${pluralizePl(count, ['produkt', 'produkty', 'produktów'])} do lodówki`);
+  };
 
   const handleShare = async () => {
     const text = items.map((i) => `- ${i.name} (${i.qty})`).join('\n');
@@ -51,8 +62,8 @@ export function ShoppingListScreen({ navigation }: Props) {
         contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.space4, paddingBottom: insets.bottom + spacing.space6 }]}
       >
         <Pressable onPress={() => navigation.goBack()} style={styles.back} hitSlop={8}>
-          <ArrowLeft size={16} color={colors.mute} />
-          <AppText style={styles.backLabel} color={colors.mute}>
+          <BackArrow />
+          <AppText style={styles.backLabel} color={colors.textMuted}>
             Więcej
           </AppText>
         </Pressable>
@@ -60,11 +71,12 @@ export function ShoppingListScreen({ navigation }: Props) {
         <AppText variant="h1" style={styles.title}>
           Lista zakupów
         </AppText>
-        <AppText variant="meta" color={colors.mute} style={styles.meta}>
+        <AppText variant="meta" color={colors.textMuted} style={styles.meta}>
           {`${uncheckedCount} z ${items.length} do kupienia`}
         </AppText>
-        <AppText variant="caption" color={colors.mute} style={styles.description}>
-          Zebrane automatycznie z przepisów, w których brakowało Ci składników. Odhaczone znikną po zakupach.
+        <AppText variant="caption" color={colors.textMuted} style={styles.description}>
+          Dodawaj brakujące składniki z przepisów albo własne pozycje. Kupione pozycje odhacz - możesz je od razu
+          przenieść do lodówki, a jeśli nie, znikną po wyjściu z listy.
         </AppText>
 
         <View style={styles.list}>
@@ -74,28 +86,39 @@ export function ShoppingListScreen({ navigation }: Props) {
               <View style={styles.rowText}>
                 <AppText
                   style={[styles.rowName, item.checked && styles.rowNameChecked]}
-                  color={item.checked ? colors.mute : colors.ink}
+                  color={item.checked ? colors.textMuted : colors.text}
                 >
                   {item.name}
                 </AppText>
                 {item.recipeName && (
-                  <AppText variant="caption" color={colors.mute} style={styles.rowRecipe}>
+                  <AppText variant="caption" color={colors.textMuted} style={styles.rowRecipe}>
                     {`na: ${item.recipeName}`}
                   </AppText>
                 )}
               </View>
-              <AppText variant="meta" color={colors.mute}>
+              <AppText variant="meta" color={colors.textMuted}>
                 {item.qty}
               </AppText>
+              <Pressable onPress={() => removeItem(item.id)} hitSlop={8}>
+                <X size={18} color={colors.error} />
+              </Pressable>
             </View>
           ))}
           {items.length === 0 && (
-            <AppText variant="caption" color={colors.mute} style={styles.emptyText}>
-              Lista jest pusta. Pozycje pojawią się tu automatycznie, gdy otworzysz przepis z brakującym
-              składnikiem.
+            <AppText variant="caption" color={colors.textMuted} style={styles.emptyText}>
+              Lista jest pusta. Dodaj pozycję ręcznie albo stuknij ＋ przy brakującym składniku w przepisie.
             </AppText>
           )}
         </View>
+
+        {checkedItems.length > 0 && (
+          <Button
+            label={`Kupione - dodaj do lodówki (${checkedItems.length})`}
+            variant="primary"
+            onPress={handleMoveToFridge}
+            style={styles.moveButton}
+          />
+        )}
 
         <View style={styles.actions}>
           <Button label="Udostępnij listę" variant="secondary" onPress={handleShare} style={styles.shareButton} />
@@ -118,7 +141,7 @@ export function ShoppingListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: screenPaddingHorizontal,
@@ -145,9 +168,9 @@ const styles = StyleSheet.create({
   },
   list: {
     marginTop: spacing.space5,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 16,
     paddingHorizontal: 14,
   },
@@ -159,7 +182,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
   },
   rowText: {
     flex: 1,
@@ -180,10 +203,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.space4,
     lineHeight: 18,
   },
+  moveButton: {
+    marginTop: spacing.space6,
+  },
   actions: {
     flexDirection: 'row',
     gap: spacing.space3,
-    marginTop: spacing.space6,
+    marginTop: spacing.space3,
   },
   shareButton: {
     flex: 1,

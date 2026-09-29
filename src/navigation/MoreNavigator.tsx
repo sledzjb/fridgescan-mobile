@@ -1,6 +1,5 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { EmptyLegalScreen } from '../screens/more/EmptyLegalScreen';
 import { MoreScreen } from '../screens/more/MoreScreen';
 import { HistoryScreen } from '../screens/more/HistoryScreen';
 import { ShoppingListScreen } from '../screens/more/ShoppingListScreen';
@@ -18,12 +17,6 @@ export function MoreNavigator() {
       <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
-      <Stack.Screen name="PrivacyPolicy" options={{ presentation: 'modal' }}>
-        {({ navigation }) => <EmptyLegalScreen title="Polityka prywatności" navigation={navigation} />}
-      </Stack.Screen>
-      <Stack.Screen name="TermsOfService" options={{ presentation: 'modal' }}>
-        {({ navigation }) => <EmptyLegalScreen title="Regulamin" navigation={navigation} />}
-      </Stack.Screen>
     </Stack.Navigator>
   );
 }

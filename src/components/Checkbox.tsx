@@ -18,7 +18,7 @@ export function Checkbox({ value, onValueChange, disabled }: CheckboxProps) {
       disabled={disabled}
       style={[styles.base, value ? styles.checked : styles.unchecked, disabled && styles.disabled]}
     >
-      {value && <Check size={12} strokeWidth={3} color={colors.white} />}
+      {value && <Check size={12} strokeWidth={3} color={colors.onPrimary} />}
     </Pressable>
   );
 }
@@ -33,13 +33,13 @@ const styles = StyleSheet.create({
   },
   unchecked: {
     borderWidth: 1.5,
-    borderColor: colors.line,
+    borderColor: colors.border,
     backgroundColor: 'transparent',
   },
   checked: {
     borderWidth: 1.5,
-    borderColor: colors.primary700,
-    backgroundColor: colors.primary700,
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
   },
   disabled: {
     opacity: 0.5,

@@ -1,35 +1,27 @@
 import React from 'react';
 import { Pressable, View, StyleSheet } from 'react-native';
-import { ChefHat } from 'lucide-react-native';
-import { AppText } from '../../components';
+import { AppText, RecipeThumb } from '../../components';
+import { recipeLabel } from '../../constants/recipeLabels';
 import { colors, radius, spacing, fontFamily } from '../../theme';
 import { Recipe } from '../../data/recipes';
 
 export type RecipeListRowProps = {
   recipe: Recipe;
-  matchPercent?: number;
   onPress: () => void;
 };
 
-export function RecipeListRow({ recipe, matchPercent, onPress }: RecipeListRowProps) {
+export function RecipeListRow({ recipe, onPress }: RecipeListRowProps) {
   return (
     <Pressable style={styles.row} onPress={onPress}>
-      <View style={styles.thumb}>
-        <ChefHat size={22} color={colors.primary700} strokeWidth={1.5} />
-      </View>
+      <RecipeThumb imageUrl={recipe.imageUrl} iconSize={22} style={styles.thumb} />
       <View style={styles.body}>
         <AppText style={styles.title} numberOfLines={1}>
           {recipe.title}
         </AppText>
-        <AppText variant="meta" color={colors.mute} style={styles.meta}>
-          {`${recipe.time} · ${recipe.meal} · ${recipe.difficulty}`}
+        <AppText variant="meta" color={colors.textMuted} style={styles.meta}>
+          {`${recipe.time} · ${recipeLabel(recipe.meal)} · ${recipeLabel(recipe.difficulty)}`}
         </AppText>
       </View>
-      {matchPercent !== undefined && (
-        <AppText style={styles.percent} color={matchPercent >= 85 ? colors.primary700 : colors.mute}>
-          {`${matchPercent}%`}
-        </AppText>
-      )}
     </Pressable>
   );
 }
@@ -42,13 +34,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border,
   },
   thumb: {
     width: 52,
     height: 52,
     borderRadius: 12,
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.primarySubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -58,13 +50,9 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fontFamily.outfitSemiBold,
     fontSize: 14.5,
-    color: colors.ink,
+    color: colors.text,
   },
   meta: {
     marginTop: 3,
-  },
-  percent: {
-    fontFamily: fontFamily.plexMonoRegular,
-    fontSize: 12.5,
   },
 });

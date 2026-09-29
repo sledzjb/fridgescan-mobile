@@ -1,5 +1,5 @@
 import { generateId } from '../../utils/id';
-import { mockRecognizeFridgePhoto, RecognitionOutcome } from '../mockRecognition';
+import { RecognitionOutcome } from './types';
 import { recognizeFridgeImage, GeminiError } from './client';
 
 export type CapturedPhoto = { base64: string; mimeType: string };
@@ -11,10 +11,6 @@ export type CapturedPhoto = { base64: string; mimeType: string };
  * w UI), nie podstawionymi danymi.
  */
 export async function recognizeFridgePhoto(photo: CapturedPhoto): Promise<RecognitionOutcome> {
-  if (process.env.EXPO_PUBLIC_USE_FIXTURES === 'true') {
-    return mockRecognizeFridgePhoto();
-  }
-
   try {
     const items = await recognizeFridgeImage(photo.base64, photo.mimeType);
     if (items.length === 0) {

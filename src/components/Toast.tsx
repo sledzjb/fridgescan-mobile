@@ -25,13 +25,13 @@ export function Toast({ visible, message, actionLabel, onActionPress, onHide }: 
 
   return (
     <View style={styles.toast}>
-      <Check size={18} color={colors.white} />
-      <AppText variant="body" color={colors.white} style={styles.message} numberOfLines={2}>
+      <Check size={18} color={colors.onInverse} />
+      <AppText variant="body" color={colors.onInverse} style={styles.message} numberOfLines={2}>
         {message}
       </AppText>
       {actionLabel && (
         <Pressable onPress={onActionPress}>
-          <AppText style={styles.action} color={colors.secondary300}>
+          <AppText style={styles.action} color={colors.inverseAccent}>
             {actionLabel}
           </AppText>
         </Pressable>
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 96,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.inverse,
     borderRadius: 15,
     paddingVertical: 14,
     paddingHorizontal: 16,

@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, Card } from '../../components';
-import { colors, alpha, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
+import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
-import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { daysUntil } from '../../utils/date';
 import { EXPIRY_SOON_THRESHOLD_DAYS } from '../../constants/fridge';
 import { pluralizePl } from '../../utils/pluralize';
-import { DEFAULT_FILTERS, GeneratorFilters, matchAllRecipes, filterRecipes } from '../../utils/recipeMatch';
+import { recipeLabel } from '../../constants/recipeLabels';
+import { MEALS, TASTES, DIFFICULTIES, DIET_CATEGORIES } from '../../data/recipes';
+import { DEFAULT_FILTERS, GeneratorFilters } from '../../utils/recipeMatch';
 import { GeneratorStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<GeneratorStackParamList, 'Generator'>;
@@ -22,7 +23,7 @@ function FilterOption({ label, selected, onPress }: { label: string; selected: b
     >
       <AppText
         style={[styles.filterOptionText, { fontFamily: selected ? fontFamily.outfitSemiBold : fontFamily.outfitMedium }]}
-        color={selected ? colors.white : colors.ink}
+        color={selected ? colors.onPrimary : colors.text}
       >
         {label}
       </AppText>
@@ -34,27 +35,29 @@ function FilterGroup<T extends string>({
   kicker,
   note,
   options,
+  labelFor,
   value,
   onChange,
 }: {
   kicker: string;
   note?: string;
   options: readonly T[];
+  labelFor: (value: T) => string;
   value: T;
   onChange: (v: T) => void;
 }) {
   return (
     <View style={styles.group}>
-      <AppText variant="kicker" color={colors.mute} style={styles.groupKicker}>
+      <AppText variant="kicker" color={colors.textMuted} style={styles.groupKicker}>
         {kicker}
       </AppText>
       <View style={styles.groupRow}>
         {options.map((opt) => (
-          <FilterOption key={opt} label={opt} selected={value === opt} onPress={() => onChange(opt)} />
+          <FilterOption key={opt} label={labelFor(opt)} selected={value === opt} onPress={() => onChange(opt)} />
         ))}
       </View>
       {note && (
-        <AppText variant="caption" color={colors.mute} style={styles.groupNote}>
+        <AppText variant="caption" color={colors.textMuted} style={styles.groupNote}>
           {note}
         </AppText>
       )}
@@ -65,11 +68,8 @@ function FilterGroup<T extends string>({
 export function GeneratorScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
-  const { recipes } = useRecipesCatalog();
   const [filters, setFilters] = useState<GeneratorFilters>(DEFAULT_FILTERS);
 
-  const matches = matchAllRecipes(recipes, products);
-  const resultCount = filterRecipes(matches, filters).length;
   const expiringSoonCount = products.filter(
     (p) => p.expiryDate && daysUntil(p.expiryDate) <= EXPIRY_SOON_THRESHOLD_DAYS
   ).length;
@@ -84,40 +84,44 @@ export function GeneratorScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.content, { paddingTop: insets.top + spacing.space6 }]}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.space6 }]}>
         <AppText variant="h1">Generator przepisów</AppText>
-        <AppText variant="caption" color={colors.mute} style={styles.description}>
-          Wybierz preferencje. Pokażemy tylko przepisy, w których co najmniej 3 składniki masz w lodówce.
+        <AppText variant="caption" color={colors.textMuted} style={styles.description}>
+          Wybierz preferencje. Wygenerujemy przepisy z tego, co masz w lodówce.
         </AppText>
 
         <FilterGroup
           kicker="RODZAJ POSIŁKU"
-          options={['Śniadanie', 'Obiad', 'Kolacja'] as const}
+          options={MEALS}
+          labelFor={recipeLabel}
           value={filters.meal}
           onChange={(v) => setFilter('meal', v)}
         />
         <FilterGroup
           kicker="PROFIL SMAKOWY"
-          options={['Na słodko', 'Na słono'] as const}
+          options={TASTES}
+          labelFor={recipeLabel}
           value={filters.taste}
           onChange={(v) => setFilter('taste', v)}
         />
         <FilterGroup
           kicker="POZIOM TRUDNOŚCI"
           note="Proste = także dla dzieci. Złożone = więcej kroków i technik."
-          options={['Proste', 'Złożone'] as const}
+          options={DIFFICULTIES}
+          labelFor={recipeLabel}
           value={filters.difficulty}
           onChange={(v) => setFilter('difficulty', v)}
         />
         <FilterGroup
           kicker="DIETA"
-          options={['Standardowa', 'Wegetariańskie', 'Wegańskie', 'Bezglutenowe'] as const}
+          options={DIET_CATEGORIES}
+          labelFor={recipeLabel}
           value={filters.diet}
           onChange={(v) => setFilter('diet', v)}
         />
 
         <Card style={styles.baseCard} padding={spacing.space4}>
-          <AppText variant="kicker" color={colors.mute}>
+          <AppText variant="kicker" color={colors.textMuted}>
             BAZA
           </AppText>
           <AppText variant="body" style={styles.baseCardText}>
@@ -126,17 +130,14 @@ export function GeneratorScreen({ navigation }: Props) {
               : `${products.length} w lodówce.`}
           </AppText>
         </Card>
-      </View>
+      </ScrollView>
 
       <Pressable
         onPress={handleGenerate}
         style={[styles.cta, { marginBottom: insets.bottom + spacing.space5 }]}
       >
-        <AppText style={styles.ctaLabel} color={colors.white}>
+        <AppText style={styles.ctaLabel} color={colors.onPrimary}>
           Generuj propozycje
-        </AppText>
-        <AppText style={styles.ctaCount} color={alpha.whiteText60}>
-          {`${resultCount} pasuje`}
         </AppText>
       </Pressable>
     </View>
@@ -146,10 +147,12 @@ export function GeneratorScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
-    flex: 1,
     paddingHorizontal: screenPaddingHorizontal,
   },
   description: {
@@ -183,12 +186,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterOptionDefault: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
   },
   filterOptionSelected: {
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.primary,
   },
   filterOptionText: {
     fontSize: 13.5,
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
   },
   baseCard: {
     marginTop: spacing.space6,
-    marginBottom: spacing.space6,
+    marginBottom: spacing.space4,
   },
   baseCardText: {
     marginTop: spacing.space1,
@@ -204,19 +207,16 @@ const styles = StyleSheet.create({
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.primary700,
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
     borderRadius: 17,
     paddingVertical: 16,
     paddingHorizontal: spacing.space4,
     marginHorizontal: screenPaddingHorizontal,
+    marginTop: spacing.space3,
   },
   ctaLabel: {
     fontFamily: fontFamily.outfitSemiBold,
     fontSize: 15.5,
-  },
-  ctaCount: {
-    fontFamily: fontFamily.plexMonoRegular,
-    fontSize: 11.5,
   },
 });

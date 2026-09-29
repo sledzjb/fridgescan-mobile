@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, X } from 'lucide-react-native';
-import { AppText, Button, Card, ListRow, Stepper, Input } from '../../components';
+import { X } from 'lucide-react-native';
+import { BackArrow, AppText, Button, Card, ListRow, ProductListRow, Stepper, Input } from '../../components';
 import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
 import { useHistoryStore } from '../../store/useHistoryStore';
-import { RecognizedItem } from '../../services/mockRecognition';
+import { RecognizedItem } from '../../services/gemini/types';
 import { generateId } from '../../utils/id';
 import { pluralizePl } from '../../utils/pluralize';
-import { getIngredientThumbnailUrl } from '../../utils/ingredientImage';
 import { CATEGORIES } from '../../constants/fridge';
 import { FridgeStackParamList } from '../../navigation/types';
 
@@ -49,6 +48,7 @@ export function RecognizedProductsScreen({ navigation, route }: Props) {
       addProduct({
         name: it.name.trim(),
         genericName: it.genericName,
+        nameEn: it.nameEn,
         category: it.category,
         qty: it.qty,
         unit: it.unit,
@@ -70,36 +70,38 @@ export function RecognizedProductsScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.space4 }]}>
-        <Pressable onPress={rescan} style={styles.back} hitSlop={8}>
-          <ArrowLeft size={16} color={colors.mute} />
-          <AppText style={styles.backLabel} color={colors.mute}>
-            Skanuj ponownie
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <View style={[styles.header, { paddingTop: insets.top + spacing.space4 }]}>
+          <Pressable onPress={rescan} style={styles.back} hitSlop={8}>
+            <BackArrow />
+            <AppText style={styles.backLabel} color={colors.textMuted}>
+              Skanuj ponownie
+            </AppText>
+          </Pressable>
+          <AppText variant="h1" style={styles.title}>
+            {`Rozpoznano ${items.length} ${pluralizePl(items.length, ['produkt', 'produkty', 'produktów'])}`}
           </AppText>
-        </Pressable>
-        <AppText variant="h1" style={styles.title}>
-          {`Rozpoznano ${items.length} ${pluralizePl(items.length, ['produkt', 'produkty', 'produktów'])}`}
-        </AppText>
-        <AppText variant="caption" color={colors.mute} style={styles.description}>
-          Popraw ilości, usuń błędne pozycje, dodaj to, czego AI nie zauważyła. Poprawki uczą model Twoich zwyczajów.
-        </AppText>
-      </View>
+          <AppText variant="caption" color={colors.textMuted} style={styles.description}>
+            Popraw ilości, usuń błędne pozycje, dodaj to, czego AI nie zauważyła.
+          </AppText>
+        </View>
 
-      <Card style={styles.card}>
-        {items.map((item, i) => (
-          <RecognizedRow
-            key={item.id}
-            item={item}
-            last={i === items.length - 1}
-            onChangeName={(name) => updateItem(item.id, { name })}
-            onChangeQty={(qty) => updateItem(item.id, { qty })}
-            onConfirm={() => updateItem(item.id, { confirmed: true })}
-            onReject={() => removeItem(item.id)}
-            onRemove={() => removeItem(item.id)}
-          />
-        ))}
-        <ListRow title="+ Dodaj pominięty produkt" onPress={addSkippedProduct} last />
-      </Card>
+        <Card style={styles.card}>
+          {items.map((item, i) => (
+            <RecognizedRow
+              key={item.id}
+              item={item}
+              last={i === items.length - 1}
+              onChangeName={(name) => updateItem(item.id, { name })}
+              onChangeQty={(qty) => updateItem(item.id, { qty })}
+              onConfirm={() => updateItem(item.id, { confirmed: true })}
+              onReject={() => removeItem(item.id)}
+              onRemove={() => removeItem(item.id)}
+            />
+          ))}
+          <ListRow title="+ Dodaj pominięty produkt" onPress={addSkippedProduct} last />
+        </Card>
+      </ScrollView>
 
       <Button
         label="Zapisz do lodówki"
@@ -139,23 +141,23 @@ function RecognizedRow({
 
   return (
     <View style={!last && styles.rowDivider}>
-      <ListRow
+      <ProductListRow
         title={item.name}
         titleElement={
           item.name === '' ? (
             <Input placeholder="Nazwa produktu" value={item.name} onChangeText={onChangeName} autoFocus style={styles.inlineInput} />
           ) : undefined
         }
-        thumbnailUri={item.name ? getIngredientThumbnailUrl(item.name) ?? undefined : undefined}
+        photoQuery={item.nameEn || item.genericName}
         thumbnailFallbackLetter={item.name || '?'}
         thumbnailSize={36}
         meta={item.name === '' ? undefined : metaText}
-        metaColor={needsConfirmation ? colors.secondary700 : colors.mute}
+        metaColor={needsConfirmation ? colors.warningStrong : colors.textMuted}
         rightElement={
           <View style={styles.editRow}>
             <Stepper value={item.qty} unit={item.unit} onChange={onChangeQty} />
             <Pressable onPress={onRemove} hitSlop={8}>
-              <X size={18} color={colors.secondary700} />
+              <X size={18} color={colors.error} />
             </Pressable>
           </View>
         }
@@ -163,8 +165,8 @@ function RecognizedRow({
       />
       {needsConfirmation && (
         <View style={styles.confirmRow}>
-          <ConfirmChip label={`Tak, to ${item.name}`} bg={colors.primary50} textColor={colors.primary700} onPress={onConfirm} />
-          <ConfirmChip label="Nie, usuń" bg={colors.line} textColor={colors.ink} onPress={onReject} />
+          <ConfirmChip label={`Tak, to ${item.name}`} bg={colors.primarySubtle} textColor={colors.primary} onPress={onConfirm} />
+          <ConfirmChip label="Nie, usuń" bg={colors.border} textColor={colors.text} onPress={onReject} />
         </View>
       )}
     </View>
@@ -184,7 +186,13 @@ function ConfirmChip({ label, bg, textColor, onPress }: { label: string; bg: str
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: spacing.space6,
   },
   header: {
     paddingHorizontal: screenPaddingHorizontal,
@@ -213,7 +221,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border,
   },
   editRow: {
     flexDirection: 'row',
@@ -243,6 +251,6 @@ const styles = StyleSheet.create({
   },
   cta: {
     marginHorizontal: screenPaddingHorizontal,
-    marginTop: spacing.space6,
+    marginTop: spacing.space3,
   },
 });

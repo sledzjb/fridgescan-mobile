@@ -3,12 +3,10 @@ import { View, ScrollView, Pressable, StyleSheet, NativeSyntheticEvent, NativeSc
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search } from 'lucide-react-native';
-import { AppText, Chip, MockDataBanner } from '../../components';
+import { AppText, Button, Card, Chip } from '../../components';
 import { colors, spacing, screenPaddingHorizontal } from '../../theme';
-import { useProductsStore } from '../../store/useProductsStore';
 import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { Recipe } from '../../data/recipes';
-import { matchRecipe } from '../../utils/recipeMatch';
 import { pluralizePl } from '../../utils/pluralize';
 import { RecipeListRow } from './RecipeListRow';
 import { RecipesStackParamList } from '../../navigation/types';
@@ -21,13 +19,13 @@ function matchesFilter(recipe: Recipe, filter: FilterKey): boolean {
     case 'Wszystkie':
       return true;
     case 'Śniadania':
-      return recipe.meal === 'Śniadanie';
+      return recipe.meal === 'breakfast';
     case 'Obiady':
-      return recipe.meal === 'Obiad';
+      return recipe.meal === 'lunch';
     case 'Kolacje':
-      return recipe.meal === 'Kolacja';
+      return recipe.meal === 'dinner';
     case 'Na słodko':
-      return recipe.taste === 'Na słodko';
+      return recipe.taste === 'sweet';
     case 'Wegetariańskie':
       return recipe.vegetarian;
   }
@@ -42,13 +40,14 @@ const LOAD_MORE_THRESHOLD_PX = 300;
 
 export function AllRecipesScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const products = useProductsStore((s) => s.products);
-  const { recipes: allRecipes, source: dataSource } = useRecipesCatalog();
+  const { recipes: allRecipes } = useRecipesCatalog();
   const [filter, setFilter] = useState<FilterKey>('Wszystkie');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filteredRecipes = allRecipes.filter((r) => matchesFilter(r, filter));
   const recipes = filteredRecipes.slice(0, visibleCount);
+
+  const goToGenerator = () => navigation.getParent()?.navigate('GeneratorTab' as never);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -71,43 +70,56 @@ export function AllRecipesScreen({ navigation }: Props) {
     >
       <View style={styles.header}>
         <AppText variant="h1">Wszystkie przepisy</AppText>
-        <AppText variant="meta" color={colors.mute} style={styles.meta}>
-          {`${allRecipes.length} ${pluralizePl(allRecipes.length, ['przepis', 'przepisy', 'przepisów'])} · niezależnie od lodówki`}
-        </AppText>
 
-        <Pressable style={styles.searchField} onPress={() => navigation.navigate('SearchRecipes')}>
-          <Search size={16} color={colors.mute} />
-          <AppText style={styles.searchPlaceholder} color={colors.mute}>
-            Szukaj przepisu lub składnika
-          </AppText>
-        </Pressable>
+        {allRecipes.length > 0 && (
+          <>
+            <AppText variant="meta" color={colors.textMuted} style={styles.meta}>
+              {`${allRecipes.length} ${pluralizePl(allRecipes.length, ['przepis', 'przepisy', 'przepisów'])} · wygenerowane w generatorze`}
+            </AppText>
 
-        <View style={styles.chips}>
-          {FILTERS.map((f) => (
-            <Chip key={f} label={f} state={filter === f ? 'filterActive' : 'default'} onPress={() => setFilter(f)} />
-          ))}
-        </View>
+            <Pressable style={styles.searchField} onPress={() => navigation.navigate('SearchRecipes')}>
+              <Search size={16} color={colors.textMuted} />
+              <AppText style={styles.searchPlaceholder} color={colors.textMuted}>
+                Szukaj przepisu lub składnika
+              </AppText>
+            </Pressable>
 
-        {dataSource === 'mock' && (
-          <View style={styles.banner}>
-            <MockDataBanner />
-          </View>
+            <View style={styles.chips}>
+              {FILTERS.map((f) => (
+                <Chip key={f} label={f} state={filter === f ? 'filterActive' : 'default'} onPress={() => setFilter(f)} />
+              ))}
+            </View>
+          </>
         )}
       </View>
 
-      <View style={styles.list}>
-        {recipes.map((recipe) => {
-          const match = matchRecipe(recipe, products);
-          return (
+      {allRecipes.length === 0 ? (
+        <Card style={styles.emptyCard} radius={20} padding={0}>
+          <View style={styles.emptyCardInner}>
+            <AppText variant="h3" style={styles.emptyText}>
+              Nie masz jeszcze przepisów
+            </AppText>
+            <AppText variant="caption" color={colors.textMuted} style={styles.emptyText}>
+              Pojawią się tutaj po pierwszym wygenerowaniu propozycji w zakładce Generator.
+            </AppText>
+            <Button label="Przejdź do generatora" variant="primary" onPress={goToGenerator} style={styles.fullWidth} />
+          </View>
+        </Card>
+      ) : filteredRecipes.length === 0 ? (
+        <AppText variant="caption" color={colors.textMuted} style={styles.noneInFilter}>
+          Brak przepisów w tej kategorii.
+        </AppText>
+      ) : (
+        <View style={styles.list}>
+          {recipes.map((recipe) => (
             <RecipeListRow
               key={recipe.id}
               recipe={recipe}
-              matchPercent={match.matchPercent}
               onPress={() => navigation.navigate('RecipeDetail', { recipeId: recipe.id, from: 'recipes' })}
             />
-          );
-        })}
-      </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -115,7 +127,7 @@ export function AllRecipesScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: screenPaddingHorizontal,
@@ -127,9 +139,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.space2,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 14,
     paddingHorizontal: 15,
     paddingVertical: 15,
@@ -137,6 +149,27 @@ const styles = StyleSheet.create({
   },
   searchPlaceholder: {
     fontSize: 16,
+  },
+  emptyCard: {
+    marginTop: spacing.space6,
+    marginHorizontal: screenPaddingHorizontal,
+    borderStyle: 'dashed',
+  },
+  emptyCardInner: {
+    paddingVertical: 34,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    gap: spacing.space3,
+  },
+  emptyText: {
+    textAlign: 'center',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  noneInFilter: {
+    marginTop: spacing.space5,
+    paddingHorizontal: screenPaddingHorizontal,
   },
   chips: {
     flexDirection: 'row',
@@ -150,9 +183,9 @@ const styles = StyleSheet.create({
   list: {
     marginTop: spacing.space5,
     marginHorizontal: screenPaddingHorizontal,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 18,
     overflow: 'hidden',
   },

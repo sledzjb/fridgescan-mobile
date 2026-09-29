@@ -2,8 +2,7 @@ import React from 'react';
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
-import { AppText } from '../../components';
+import { BackArrow, AppText } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useHistoryStore, HistoryEntry } from '../../store/useHistoryStore';
 import { MoreStackParamList } from '../../navigation/types';
@@ -29,14 +28,14 @@ function formatEntryTime(timestamp: number): { text: string; isRecent: boolean }
 }
 
 function dotColor(entry: HistoryEntry, isRecent: boolean): string {
-  if (!isRecent) return colors.line;
+  if (!isRecent) return colors.border;
   switch (entry.type) {
     case 'scan':
-      return colors.accent600;
+      return colors.primary;
     case 'generation':
-      return colors.primary700;
+      return colors.primary;
     case 'cooked':
-      return colors.secondary500;
+      return colors.secondaryStrong;
   }
 }
 
@@ -68,8 +67,8 @@ export function HistoryScreen({ navigation }: Props) {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.space4, paddingBottom: insets.bottom + spacing.space6 }]}
     >
       <Pressable onPress={() => navigation.goBack()} style={styles.back} hitSlop={8}>
-        <ArrowLeft size={16} color={colors.mute} />
-        <AppText style={styles.backLabel} color={colors.mute}>
+        <BackArrow />
+        <AppText style={styles.backLabel} color={colors.textMuted}>
           Więcej
         </AppText>
       </Pressable>
@@ -77,12 +76,12 @@ export function HistoryScreen({ navigation }: Props) {
       <AppText variant="h1" style={styles.title}>
         Historia
       </AppText>
-      <AppText variant="caption" color={colors.mute} style={styles.description}>
+      <AppText variant="caption" color={colors.textMuted} style={styles.description}>
         Skany lodówki i wygenerowane listy z ostatnich 30 dni.
       </AppText>
 
       {entries.length === 0 && (
-        <AppText variant="caption" color={colors.mute} style={styles.emptyText}>
+        <AppText variant="caption" color={colors.textMuted} style={styles.emptyText}>
           Nic tu jeszcze nie ma - historia pojawi się po pierwszym skanie lub wygenerowaniu przepisów.
         </AppText>
       )}
@@ -97,15 +96,15 @@ export function HistoryScreen({ navigation }: Props) {
                 {i < entries.length - 1 && <View style={styles.trackLine} />}
               </View>
               <View style={styles.card}>
-                <AppText variant="meta" color={colors.mute}>
+                <AppText variant="meta" color={colors.textMuted}>
                   {text}
                 </AppText>
                 <AppText style={styles.cardTitle}>{entry.title}</AppText>
-                <AppText variant="caption" color={colors.mute} style={styles.cardDescription}>
+                <AppText variant="caption" color={colors.textMuted} style={styles.cardDescription}>
                   {entry.description}
                 </AppText>
                 <Pressable onPress={() => handleAction(entry)} hitSlop={8}>
-                  <AppText style={styles.actionLink} color={colors.primary700}>
+                  <AppText style={styles.actionLink} color={colors.primary}>
                     {entry.actionLabel}
                   </AppText>
                 </Pressable>
@@ -121,7 +120,7 @@ export function HistoryScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: screenPaddingHorizontal,
@@ -166,12 +165,12 @@ const styles = StyleSheet.create({
   trackLine: {
     flex: 1,
     width: 1,
-    backgroundColor: colors.line,
+    backgroundColor: colors.border,
     marginTop: 4,
   },
   card: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 13,
     marginBottom: spacing.space3,
@@ -179,7 +178,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontFamily: fontFamily.outfitSemiBold,
     fontSize: 14.5,
-    color: colors.ink,
+    color: colors.text,
     marginTop: 4,
   },
   cardDescription: {

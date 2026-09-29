@@ -26,13 +26,13 @@ export function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.ink,
-        tabBarInactiveTintColor: colors.mute,
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           height: 80,
-          backgroundColor: colors.white,
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: colors.line,
+          borderTopColor: colors.border,
           paddingTop: 11,
         },
         tabBarItemStyle: {
@@ -52,12 +52,13 @@ export function MainTabs() {
               </View>
             ),
             tabBarLabel: ({ color }) => (
-              <AppText
-                style={{ fontFamily: fontFamily.outfitMedium, fontSize: 11, lineHeight: 13 }}
-                color={color}
-              >
-                {label}
-              </AppText>
+              // Tab bar jest biały - etykiety nie mogą brać jasnych kolorów z ciemnego tła ekranów.
+                <AppText
+                  style={{ fontFamily: fontFamily.outfitMedium, fontSize: 11, lineHeight: 13 }}
+                  color={color}
+                >
+                  {label}
+                </AppText>
             ),
           }}
         />

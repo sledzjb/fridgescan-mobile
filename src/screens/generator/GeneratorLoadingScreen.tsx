@@ -1,62 +1,96 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Animated, Easing, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText } from '../../components';
+import { AppText, Button, RecipesUnavailable } from '../../components';
 import { colors, radius, spacing, screenPaddingHorizontal } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
-import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { useHistoryStore } from '../../store/useHistoryStore';
-import { matchAllRecipes, filterRecipes } from '../../utils/recipeMatch';
+import { getRecipesForFilters } from '../../services/recipes/recipesService';
+import { matchRecipe } from '../../utils/recipeMatch';
+import { recipeLabel } from '../../constants/recipeLabels';
+import { RECIPE_GENERATION_COUNT } from '../../constants/recipes';
 import { pluralizePl } from '../../utils/pluralize';
+import { describeError } from '../../utils/errorMessages';
+import { GeminiError } from '../../services/gemini/client';
 import { GeneratorStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<GeneratorStackParamList, 'GeneratorLoading'>;
 
-const LOADING_DURATION_MS = 1500;
+const PROGRESS_DURATION_MS = 12000;
 
 export function GeneratorLoadingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
-  const { recipes } = useRecipesCatalog();
   const addHistoryEntry = useHistoryStore((s) => s.addEntry);
   const progress = useRef(new Animated.Value(0)).current;
+  const [attempt, setAttempt] = useState(0);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   useEffect(() => {
+    const { filters } = route.params;
+    let cancelled = false;
+    setErrorCode(null);
+    progress.setValue(0);
     Animated.timing(progress, {
       toValue: 1,
-      duration: LOADING_DURATION_MS,
+      duration: PROGRESS_DURATION_MS,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start();
 
-    const timer = setTimeout(() => {
-      const { filters } = route.params;
-      const matches = matchAllRecipes(recipes, products);
-      const results = filterRecipes(matches, filters);
-      addHistoryEntry({
-        type: 'generation',
-        title: 'Generowanie propozycji',
-        description: `${filters.meal} · ${filters.taste} · ${filters.difficulty} - ${results.length} ${pluralizePl(results.length, ['wynik', 'wyniki', 'wyników'])}.`,
-        actionLabel: 'Powtórz z tymi filtrami',
+    getRecipesForFilters(products, filters)
+      .then((generated) => {
+        if (cancelled) return;
+        const results = generated
+          .map((recipe) => matchRecipe(recipe, products))
+          .sort((a, b) => b.matchPercent - a.matchPercent || b.haveCount - a.haveCount);
+        addHistoryEntry({
+          type: 'generation',
+          title: 'Generowanie propozycji',
+          description: `${recipeLabel(filters.meal)} · ${recipeLabel(filters.taste)} · ${recipeLabel(filters.difficulty)} - ${results.length} ${pluralizePl(results.length, ['wynik', 'wyniki', 'wyników'])}.`,
+          actionLabel: 'Powtórz z tymi filtrami',
+        });
+        if (results.length > 0) {
+          navigation.replace('RecipeResults', { filters, recipeIds: results.map((m) => m.recipe.id) });
+        } else {
+          navigation.replace('RecipeResultsEmpty', { filters });
+        }
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        progress.stopAnimation();
+        setErrorCode(e instanceof GeminiError ? e.code : 'UNKNOWN');
       });
-      if (results.length > 0) {
-        navigation.replace('RecipeResults', { filters });
-      } else {
-        navigation.replace('RecipeResultsEmpty', { filters });
-      }
-    }, LOADING_DURATION_MS);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      progress.stopAnimation();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [attempt]);
 
-  const widthPercent = progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '46%'] });
+  const widthPercent = progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '90%'] });
+
+  if (errorCode) {
+    const { title, description } = describeError(errorCode);
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top + spacing.space6 }]}>
+        <AppText variant="h1">Szukam przepisów</AppText>
+        <View style={styles.errorWrap}>
+          <RecipesUnavailable title={title} description={description} />
+          <Button label="Spróbuj ponownie" variant="primary" onPress={() => setAttempt((n) => n + 1)} />
+          <Button label="Zmień preferencje" variant="tertiary" onPress={() => navigation.goBack()} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.space6 }]}>
       <AppText variant="h1">Szukam przepisów</AppText>
-      <AppText variant="meta" color={colors.mute} style={styles.meta}>
-        {`dopasowuję ${recipes.length} ${pluralizePl(recipes.length, ['przepis', 'przepisy', 'przepisów'])} do ${products.length} ${pluralizePl(products.length, ['produktu', 'produktów', 'produktów'])}…`}
+      <AppText variant="meta" color={colors.textMuted} style={styles.meta}>
+        {`generuję przepisy z ${products.length} ${pluralizePl(products.length, ['produktu', 'produktów', 'produktów'])} z lodówki…`}
       </AppText>
 
       <View style={styles.progressTrack}>
@@ -64,7 +98,7 @@ export function GeneratorLoadingScreen({ navigation, route }: Props) {
       </View>
 
       <View style={styles.skeletons}>
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: RECIPE_GENERATION_COUNT }).map((_, i) => (
           <View key={i} style={styles.skeletonCard}>
             <View style={styles.skeletonThumb} />
             <View style={styles.skeletonLines}>
@@ -83,23 +117,27 @@ export function GeneratorLoadingScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingHorizontal: screenPaddingHorizontal,
   },
   meta: {
     marginTop: spacing.space2,
   },
+  errorWrap: {
+    marginTop: spacing.space6,
+    gap: spacing.space3,
+  },
   progressTrack: {
     height: 3,
     borderRadius: radius.pill,
-    backgroundColor: colors.line,
+    backgroundColor: colors.border,
     marginTop: spacing.space6,
     overflow: 'hidden',
   },
   progressFill: {
     height: 3,
     borderRadius: radius.pill,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.primary,
   },
   skeletons: {
     marginTop: spacing.space6,
@@ -109,9 +147,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.space3,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: radius.xl,
     padding: 13,
   },
@@ -119,7 +157,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 14,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.borderSubtle,
   },
   skeletonLines: {
     flex: 1,
@@ -127,12 +165,12 @@ const styles = StyleSheet.create({
   },
   skeletonLine: {
     borderRadius: radius.pill,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.borderSubtle,
   },
   skeletonBadge: {
     width: 44,
     height: 22,
     borderRadius: radius.pill,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.borderSubtle,
   },
 });

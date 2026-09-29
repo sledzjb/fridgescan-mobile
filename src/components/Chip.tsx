@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { View, Pressable, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { AppText } from './AppText';
 import { colors, radius, fontFamily } from '../theme';
 
@@ -39,34 +39,34 @@ function getStateStyle(state: ChipState) {
   switch (state) {
     case 'selected':
       return {
-        container: { backgroundColor: colors.primary700 },
-        textColor: colors.white,
-        border: colors.primary700,
+        container: { backgroundColor: colors.primary },
+        textColor: colors.onPrimary,
+        border: colors.primary,
         dashed: false,
         weight: fontFamily.outfitSemiBold,
       };
     case 'filterActive':
       return {
-        container: { backgroundColor: colors.ink },
-        textColor: colors.white,
+        container: { backgroundColor: colors.inverse },
+        textColor: colors.onInverse,
         border: undefined,
         dashed: false,
         weight: fontFamily.outfitSemiBold,
       };
     case 'suggestion':
       return {
-        container: { backgroundColor: colors.white },
-        textColor: colors.mute,
-        border: colors.line,
+        container: { backgroundColor: colors.background },
+        textColor: colors.textMuted,
+        border: colors.border,
         dashed: true,
         weight: fontFamily.outfitMedium,
       };
     case 'default':
     default:
       return {
-        container: { backgroundColor: colors.white },
-        textColor: colors.ink,
-        border: colors.line,
+        container: { backgroundColor: colors.background },
+        textColor: colors.text,
+        border: colors.border,
         dashed: false,
         weight: fontFamily.outfitMedium,
       };

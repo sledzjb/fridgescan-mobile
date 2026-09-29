@@ -1,59 +1,59 @@
 import React from 'react';
-import { View, ScrollView, Pressable, Linking, StyleSheet } from 'react-native';
+import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, TriangleAlert } from 'lucide-react-native';
-import { AppText, Button, Card } from '../../components';
-import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
+import { BackArrow, AppText, Card } from '../../components';
+import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { MoreStackParamList } from '../../navigation/types';
+import { SUPPORTS_NOTIFICATIONS } from '../../services/notifications';
 
 type Props = NativeStackScreenProps<MoreStackParamList, 'Help'>;
-
-const SUPPORT_EMAIL = 'pomoc@fridgescan.app';
 
 const FAQ = [
   {
     question: 'Jak działa rozpoznawanie zdjęć?',
     answer:
-      'Robisz jedno zdjęcie wnętrza lodówki (albo wybierasz je z galerii), a AI rozpoznaje widoczne produkty wraz z przybliżoną ilością. Przed zapisaniem możesz poprawić, dodać lub usunąć dowolną pozycję.',
+      'Robisz jedno zdjęcie wnętrza lodówki (albo wybierasz je z galerii). Zdjęcie trafia do modelu Gemini firmy Google, który zwraca listę widocznych produktów z przybliżoną ilością. Przed zapisaniem możesz poprawić, dodać lub usunąć dowolną pozycję.',
   },
   {
     question: 'Dlaczego niektóre produkty wymagają potwierdzenia?',
     answer:
-      'Jeśli pewność rozpoznania jest niższa niż 70%, prosimy o szybkie potwierdzenie „Tak / Nie" przy tej pozycji. Twoje poprawki uczą model Twoich zwyczajów.',
+      'Jeśli sam model oceni pewność rozpoznania poniżej 70%, prosimy o potwierdzenie „Tak / Nie" przy tej pozycji. Twoje poprawki dotyczą tylko tej listy - nie uczą modelu.',
   },
   {
     question: 'Czy muszę założyć konto?',
     answer:
-      'Nie. FridgeScan działa bez konta i logowania - wszystkie dane (produkty, ulubione, historia) są zapisane lokalnie na Twoim telefonie.',
+      'Nie. Produkty, ulubione przepisy, wygenerowane przepisy i historia są zapisane wyłącznie na Twoim telefonie (albo w przeglądarce, jeśli używasz wersji webowej). Nie ma kopii zapasowej, więc odinstalowanie aplikacji albo wyczyszczenie jej danych usuwa je bezpowrotnie.',
   },
   {
     question: 'Co się dzieje ze zdjęciem lodówki?',
     answer:
-      'Zdjęcie jest wysyłane wyłącznie do rozpoznania produktów i usuwane w ciągu 24 godzin. Nie trafia do galerii aplikacji ani żadnej bazy zdjęć.',
+      'Zdjęcie (w zmniejszonej jakości) jest wysyłane przez internet do Gemini API firmy Google i tam przetwarzane, żeby rozpoznać produkty. Aplikacja nie zapisuje go w galerii ani we własnych danych i nie wysyła nigdzie indziej; system może jedynie na krótko trzymać tymczasowy plik w pamięci podręcznej aplikacji. To, co dzieje się ze zdjęciem po stronie Google, zależy od warunków Google: aplikacja korzysta obecnie z bezpłatnego poziomu Gemini API, a według warunków Google dla usług bezpłatnych przesłane dane mogą być używane do ulepszania jej usług i mogą je czytać pracownicy Google. Google odradza wysyłanie tam danych osobistych, więc fotografuj tylko jedzenie - bez dokumentów, ludzi czy widocznych adresów. Aktualne warunki: ai.google.dev/gemini-api/terms.',
+  },
+  {
+    question: 'Jakie dane opuszczają telefon?',
+    answer:
+      'Do Gemini (Google): zdjęcie lodówki przy rozpoznawaniu oraz nazwy Twoich produktów i wybrane filtry przy generowaniu przepisów (nazwy są też tłumaczone na angielski tym samym modelem). Do Pexels: angielskie nazwy produktów i krótkie frazy opisujące dania, żeby pobrać zdjęcia; zdjęcia produktów i dań pochodzą z pexels.com. Imię, ilości, terminy ważności, ulubione i historia zostają na telefonie. Zapytania do Gemini i Pexels przechodzą przez serwer pośredniczący aplikacji (Cloudflare), który tylko dodaje klucze API i niczego nie zapisuje.',
   },
   {
     question: 'Dlaczego generator przepisów nic nie znajduje?',
     answer:
-      'Pokazujemy tylko przepisy, w których masz co najmniej 3 składniki z lodówki. Spróbuj poluzować jeden z czterech filtrów albo dodać więcej produktów.',
+      'Generator prosi o kilka przepisów pod wybrane filtry i produkty z lodówki. Jeśli nic się nie pojawia, sprawdź połączenie z internetem, spróbuj ponownie za chwilę albo zmień preferencje.',
   },
-  {
-    question: 'Jak wyłączyć powiadomienia?',
-    answer:
-      'W „Ustawieniach i koncie", w sekcji Powiadomienia, możesz wyłączyć każdy typ przypomnienia osobno - bez wpływu na resztę aplikacji.',
-  },
+  // Powiadomienia działają tylko w aplikacji na telefon - na web pytanie jest pomijane.
+  ...(SUPPORTS_NOTIFICATIONS
+    ? [
+        {
+          question: 'Jak wyłączyć powiadomienia?',
+          answer:
+            'W „Ustawieniach i koncie", w sekcji Powiadomienia, wyłącz „Produkty tracące świeżość" - bez wpływu na resztę aplikacji.',
+        },
+      ]
+    : []),
 ];
 
 export function HelpScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-
-  const handleReport = () => {
-    const subject = encodeURIComponent('Zgłoszenie błędnego rozpoznania - FridgeScan');
-    const body = encodeURIComponent(
-      'Opisz krótko, co zostało błędnie rozpoznane (np. nazwa produktu, ilość):\n\n'
-    );
-    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(() => {});
-  };
 
   return (
     <ScrollView
@@ -61,28 +61,28 @@ export function HelpScreen({ navigation }: Props) {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.space4, paddingBottom: insets.bottom + spacing.space6 }]}
     >
       <Pressable onPress={() => navigation.goBack()} style={styles.back} hitSlop={8}>
-        <ArrowLeft size={16} color={colors.mute} />
-        <AppText style={styles.backLabel} color={colors.mute}>
+        <BackArrow />
+        <AppText style={styles.backLabel} color={colors.textMuted}>
           Więcej
         </AppText>
       </Pressable>
 
       <AppText variant="h1" style={styles.title}>
-        Pomoc i kontakt
+        Pomoc
       </AppText>
-      <AppText variant="bodyL" color={colors.mute} style={styles.description}>
-        Najczęstsze pytania o FridgeScan. Nie znalazłeś odpowiedzi? Zgłoś się do nas bezpośrednio.
+      <AppText variant="bodyL" color={colors.textMuted} style={styles.description}>
+        Najczęstsze pytania o FridgeScan.
       </AppText>
 
       <View style={styles.section}>
-        <AppText variant="kicker" color={colors.mute} style={styles.sectionTitle}>
+        <AppText variant="kicker" color={colors.textMuted} style={styles.sectionTitle}>
           FAQ
         </AppText>
         <Card>
           {FAQ.map((item, i) => (
             <View key={item.question} style={[styles.faqRow, i > 0 && styles.faqDivider]}>
               <AppText style={styles.question}>{item.question}</AppText>
-              <AppText variant="body" color={colors.inkSoft} style={styles.answer}>
+              <AppText variant="body" color={colors.textSecondary} style={styles.answer}>
                 {item.answer}
               </AppText>
             </View>
@@ -90,26 +90,6 @@ export function HelpScreen({ navigation }: Props) {
         </Card>
       </View>
 
-      <View style={styles.section}>
-        <AppText variant="kicker" color={colors.mute} style={styles.sectionTitle}>
-          ZGŁOŚ PROBLEM
-        </AppText>
-        <Card style={styles.reportCard} padding={0}>
-          <View style={styles.reportCardInner}>
-            <View style={styles.reportIconTile}>
-              <TriangleAlert size={22} color={colors.secondary700} />
-            </View>
-            <AppText variant="label" style={styles.reportTitle}>
-              Coś zostało źle rozpoznane?
-            </AppText>
-            <AppText variant="caption" color={colors.mute} style={styles.reportDescription}>
-              Napisz do nas - otworzymy Twoją aplikację pocztową z gotowym tematem wiadomości na adres{' '}
-              {SUPPORT_EMAIL}.
-            </AppText>
-            <Button label="Zgłoś błędne rozpoznanie" variant="outline" onPress={handleReport} style={styles.fullWidth} />
-          </View>
-        </Card>
-      </View>
     </ScrollView>
   );
 }
@@ -117,7 +97,7 @@ export function HelpScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: screenPaddingHorizontal,
@@ -150,39 +130,15 @@ const styles = StyleSheet.create({
   },
   faqDivider: {
     borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
   },
   question: {
     fontFamily: fontFamily.outfitSemiBold,
     fontSize: 14.5,
-    color: colors.ink,
+    color: colors.text,
   },
   answer: {
     marginTop: spacing.space2,
     lineHeight: 20,
-  },
-  reportCard: {},
-  reportCardInner: {
-    padding: spacing.space5,
-    alignItems: 'flex-start',
-  },
-  reportIconTile: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: colors.secondary50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.space3,
-  },
-  reportTitle: {
-    marginBottom: spacing.space2,
-  },
-  reportDescription: {
-    lineHeight: 18,
-    marginBottom: spacing.space4,
-  },
-  fullWidth: {
-    width: '100%',
   },
 });

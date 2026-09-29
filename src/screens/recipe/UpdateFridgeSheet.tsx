@@ -4,8 +4,8 @@ import { AppText, Button, Checkbox, Toggle, BottomSheet } from '../../components
 import { colors, spacing, fontFamily } from '../../theme';
 import { useProductsStore, Product } from '../../store/useProductsStore';
 import { useHistoryStore } from '../../store/useHistoryStore';
-import { RECIPES } from '../../data/recipes';
-import { matchRecipe } from '../../utils/recipeMatch';
+import { useRecipesCatalog } from '../../store/useRecipesStore';
+import { matchRecipe, findProductForIngredient } from '../../utils/recipeMatch';
 
 export type UpdateFridgeSheetNavigation = {
   goBack: () => void;
@@ -17,20 +17,13 @@ type Props = {
   route: { params: { recipeId: number; from: string } };
 };
 
-function findMatchingProduct(name: string, products: Product[]): Product | undefined {
-  const target = name.trim().toLowerCase();
-  return products.find((p) => {
-    const pName = p.name.trim().toLowerCase();
-    return pName === target || pName.includes(target) || target.includes(pName);
-  });
-}
-
 export function UpdateFridgeSheet({ navigation, route }: Props) {
   const products = useProductsStore((s) => s.products);
   const setQuantity = useProductsStore((s) => s.setQuantity);
   const addHistoryEntry = useHistoryStore((s) => s.addEntry);
+  const { recipes } = useRecipesCatalog();
 
-  const recipe = RECIPES.find((r) => r.id === route.params.recipeId);
+  const recipe = recipes.find((r) => r.id === route.params.recipeId);
   const match = useMemo(() => (recipe ? matchRecipe(recipe, products) : null), [recipe, products]);
   const haveIngredients = match ? match.ingredientStatuses.filter((i) => i.have) : [];
 
@@ -57,7 +50,7 @@ export function UpdateFridgeSheet({ navigation, route }: Props) {
   const handleUpdate = () => {
     haveIngredients.forEach((ing) => {
       if (!checked[ing.name]) return;
-      const product = findMatchingProduct(ing.name, products);
+      const product = findProductForIngredient(ing, products);
       if (!product) return;
       const usedQty = parseFloat(ing.qty.replace(',', '.')) || 0;
       setQuantity(product.id, Math.max(0, product.qty - usedQty));
@@ -76,7 +69,7 @@ export function UpdateFridgeSheet({ navigation, route }: Props) {
   return (
     <BottomSheet visible onClose={navigation.goBack}>
       <AppText variant="h3">Uaktualnić lodówkę?</AppText>
-      <AppText variant="caption" color={colors.mute} style={styles.description}>
+      <AppText variant="caption" color={colors.textMuted} style={styles.description}>
         Odejmiemy zużyte składniki. Możesz odznaczyć to, co zostało.
       </AppText>
 
@@ -87,7 +80,7 @@ export function UpdateFridgeSheet({ navigation, route }: Props) {
             <AppText variant="body" style={styles.rowName}>
               {ing.name}
             </AppText>
-            <AppText style={styles.delta} color={colors.mute}>
+            <AppText style={styles.delta} color={colors.textMuted}>
               {checked[ing.name] ? `− ${ing.qty}` : 'bez zmian'}
             </AppText>
           </View>
@@ -97,7 +90,7 @@ export function UpdateFridgeSheet({ navigation, route }: Props) {
       <View style={styles.reminderRow}>
         <View style={styles.reminderText}>
           <AppText variant="label">Przypomnij o uzupełnieniu</AppText>
-          <AppText variant="caption" color={colors.mute} style={styles.reminderCaption}>
+          <AppText variant="caption" color={colors.textMuted} style={styles.reminderCaption}>
             {checkedNames.length > 0
               ? `Powiadomienie za 3 dni: ${checkedNames.join(', ')}`
               : 'Nie zaznaczono żadnych składników do uzupełnienia.'}
@@ -129,7 +122,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
   },
   rowName: {
     flex: 1,
@@ -142,7 +135,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.space3,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.borderSubtle,
     borderRadius: 16,
     padding: spacing.space4,
     marginTop: spacing.space5,

@@ -18,7 +18,7 @@ export function WelcomeScreen({ navigation }: Props) {
       <View style={styles.overlay} />
       <View style={styles.content}>
         <View style={styles.tile}>
-          <Refrigerator size={34} color={colors.white} strokeWidth={2.5} />
+          <Refrigerator size={34} color={colors.onCamera} strokeWidth={2.5} />
         </View>
         <AppText style={styles.display}>FridgeScan</AppText>
         <AppText style={styles.subtitle}>
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   display: {
     ...typography.display,
-    color: colors.white,
+    color: colors.onCamera,
   },
   subtitle: {
     marginTop: spacing.space3,

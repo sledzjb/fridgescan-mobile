@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '../../components';
 import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useAppState } from '../../store/AppStateContext';
+import { SUPPORTS_NOTIFICATIONS } from '../../services/notifications';
 import { OnboardingStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Intro'>;
@@ -57,7 +58,9 @@ export function IntroScreen({ navigation }: Props) {
 
   const handleNext = () => {
     if (isLast) {
-      navigation.navigate('NotificationsConsent');
+      // Na web nie ma powiadomień - krok zgody na nie pomijamy.
+      if (SUPPORTS_NOTIFICATIONS) navigation.navigate('NotificationsConsent');
+      else goToFridge();
     } else {
       setStep((s) => s + 1);
     }
@@ -73,7 +76,7 @@ export function IntroScreen({ navigation }: Props) {
           ))}
         </View>
         <Pressable onPress={goToFridge} hitSlop={8}>
-          <AppText style={styles.skip} color={colors.mute}>
+          <AppText style={styles.skip} color={colors.textMuted}>
             Pomiń
           </AppText>
         </Pressable>
@@ -81,25 +84,25 @@ export function IntroScreen({ navigation }: Props) {
 
       <View style={styles.content}>
         <Image source={current.image} style={styles.illustration} resizeMode="cover" />
-        <AppText variant="kicker" color={colors.primary700} style={styles.kicker}>
+        <AppText variant="kicker" color={colors.primary} style={styles.kicker}>
           {`KROK ${step + 1} Z ${STEPS.length}`}
         </AppText>
         <AppText variant="h2" style={styles.title}>
           {current.title}
         </AppText>
-        <AppText variant="bodyL" color={colors.mute} style={styles.description}>
+        <AppText variant="bodyL" color={colors.textMuted} style={styles.description}>
           {current.description}
         </AppText>
       </View>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.space5 }]}>
         <Pressable onPress={handleBack} hitSlop={8}>
-          <AppText style={styles.back} color={colors.mute}>
+          <AppText style={styles.back} color={colors.textMuted}>
             Cofnij
           </AppText>
         </Pressable>
         <Pressable onPress={handleNext} style={styles.nextButton}>
-          <AppText style={styles.nextLabel} color={colors.white}>
+          <AppText style={styles.nextLabel} color={colors.onPrimary}>
             {isLast ? 'Zaczynajmy' : 'Dalej'}
           </AppText>
         </Pressable>
@@ -111,7 +114,7 @@ export function IntroScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingHorizontal: screenPaddingHorizontal,
   },
   topBar: {
@@ -130,11 +133,11 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: radius.pill,
-    backgroundColor: colors.line,
+    backgroundColor: colors.border,
   },
   dotActive: {
     width: 20,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.primary,
   },
   skip: {
     fontFamily: fontFamily.outfitMedium,
@@ -150,7 +153,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 250,
     borderRadius: radius.xxl,
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.primarySubtle,
     marginBottom: spacing.space6,
     overflow: 'hidden',
   },
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
   },
   nextButton: {
-    backgroundColor: colors.ink,
+    backgroundColor: colors.primary,
     borderRadius: 15,
     paddingVertical: 14,
     paddingHorizontal: 26,

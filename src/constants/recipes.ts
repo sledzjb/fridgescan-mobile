@@ -1,0 +1,1 @@
+export const RECIPE_GENERATION_COUNT = 5;

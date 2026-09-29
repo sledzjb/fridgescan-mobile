@@ -4,9 +4,9 @@ import { IsoDate } from '../utils/date';
 
 /**
  * Zaplanowane powiadomienia lokalne nie są wspierane na web (react-native-web) -
- * cały moduł jest no-opem na tej platformie zamiast udawać, że coś zaplanował.
+ * cały moduł jest no-opem na tej platformie, a UI powiadomień (onboarding, ustawienia) jest tam ukryte.
  */
-const SUPPORTS_NOTIFICATIONS = Platform.OS !== 'web';
+export const SUPPORTS_NOTIFICATIONS = Platform.OS !== 'web';
 
 export async function requestNotificationPermission(): Promise<boolean> {
   if (!SUPPORTS_NOTIFICATIONS) return false;

@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChefHat } from 'lucide-react-native';
-import { AppText, Badge, Chip, MockDataBanner } from '../../components';
+import { BackArrow, AppText, Button, Chip, RecipeThumb } from '../../components';
+import { recipeLabel } from '../../constants/recipeLabels';
 import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
 import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { daysUntil } from '../../utils/date';
 import { pluralizePl } from '../../utils/pluralize';
-import { matchAllRecipes, filterRecipes, RecipeMatch } from '../../utils/recipeMatch';
+import { matchRecipe, findProductForIngredient, RecipeMatch } from '../../utils/recipeMatch';
+import { getRecipesForFilters } from '../../services/recipes/recipesService';
+import { GeminiError } from '../../services/gemini/client';
+import { describeError } from '../../utils/errorMessages';
 import { GeneratorStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<GeneratorStackParamList, 'RecipeResults'>;
@@ -19,11 +22,7 @@ function usesExpiringSoonLine(match: RecipeMatch, products: ReturnType<typeof us
   match.ingredientStatuses
     .filter((i) => i.have)
     .forEach((ing) => {
-      const target = ing.name.trim().toLowerCase();
-      const product = products.find((p) => {
-        const names = [p.name, p.genericName].filter((n): n is string => !!n).map((n) => n.trim().toLowerCase());
-        return names.some((name) => name === target || name.includes(target) || target.includes(name));
-      });
+      const product = findProductForIngredient(ing, products);
       if (product?.expiryDate) {
         const days = daysUntil(product.expiryDate);
         if (days <= 2 && (!best || days < best.days)) {
@@ -40,16 +39,44 @@ function usesExpiringSoonLine(match: RecipeMatch, products: ReturnType<typeof us
 export function RecipeResultsScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const products = useProductsStore((s) => s.products);
-  const { recipes, source: dataSource } = useRecipesCatalog();
-  const matches = matchAllRecipes(recipes, products);
-  const results = filterRecipes(matches, route.params.filters);
+  const { recipes } = useRecipesCatalog();
   const { filters } = route.params;
+  const [ids, setIds] = useState<number[]>(route.params.recipeIds);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [moreMessage, setMoreMessage] = useState<string | null>(null);
+  // Kolejność jak w `ids`: pierwsza partia posortowana wg dopasowania, kolejne dopisywane na końcu.
+  const results = ids
+    .map((id) => recipes.find((r) => r.id === id))
+    .filter((r): r is NonNullable<typeof r> => !!r)
+    .map((r) => matchRecipe(r, products));
+
+  const handleMore = async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    setMoreMessage(null);
+    try {
+      const fresh = await getRecipesForFilters(products, filters, { existingIds: ids });
+      if (fresh.length === 0) {
+        setMoreMessage('Nie udało się znaleźć nowych przepisów. Spróbuj zmienić preferencje.');
+      } else {
+        const sorted = fresh
+          .map((r) => matchRecipe(r, products))
+          .sort((a, b) => b.matchPercent - a.matchPercent || b.haveCount - a.haveCount);
+        setIds((prev) => [...prev, ...sorted.map((m) => m.recipe.id)]);
+      }
+    } catch (e) {
+      const { title, description } = describeError(e instanceof GeminiError ? e.code : 'UNKNOWN');
+      setMoreMessage(`${title}. ${description}`);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.space4, paddingBottom: insets.bottom + spacing.space6 }]}>
       <Pressable onPress={() => navigation.goBack()} style={styles.back} hitSlop={8}>
-        <ArrowLeft size={16} color={colors.mute} />
-        <AppText style={styles.backLabel} color={colors.mute}>
+        <BackArrow />
+        <AppText style={styles.backLabel} color={colors.textMuted}>
           Zmień preferencje
         </AppText>
       </Pressable>
@@ -57,51 +84,55 @@ export function RecipeResultsScreen({ navigation, route }: Props) {
       <AppText variant="h1" style={styles.title}>
         Propozycje
       </AppText>
-      <AppText variant="meta" color={colors.mute} style={styles.meta}>
-        {`${results.length} ${pluralizePl(results.length, ['propozycja', 'propozycje', 'propozycji'])} · min. 3 składniki z lodówki`}
+      <AppText variant="meta" color={colors.textMuted} style={styles.meta}>
+        {`${results.length} ${pluralizePl(results.length, ['propozycja', 'propozycje', 'propozycji'])}`}
       </AppText>
 
       <View style={styles.filterChips}>
-        <Chip label={filters.meal} state="filterActive" />
-        <Chip label={filters.taste} state="filterActive" />
-        <Chip label={filters.difficulty} state="filterActive" />
-        <Chip label={filters.diet} state="filterActive" />
+        <Chip label={recipeLabel(filters.meal)} state="filterActive" />
+        <Chip label={recipeLabel(filters.taste)} state="filterActive" />
+        <Chip label={recipeLabel(filters.difficulty)} state="filterActive" />
+        <Chip label={recipeLabel(filters.diet)} state="filterActive" />
       </View>
-
-      {dataSource === 'mock' && (
-        <View style={styles.banner}>
-          <MockDataBanner />
-        </View>
-      )}
 
       <View style={styles.list}>
-        {results.map((match) => {
-          const usesLine = usesExpiringSoonLine(match, products);
-          return (
-            <Pressable
-              key={match.recipe.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('RecipeDetail', { recipeId: match.recipe.id, from: 'generator' })}
-            >
-              <View style={styles.thumb}>
-                <ChefHat size={26} color={colors.primary700} strokeWidth={1.5} />
-              </View>
-              <View style={styles.cardBody}>
-                <AppText style={styles.cardTitle}>{match.recipe.title}</AppText>
-                <AppText variant="meta" color={colors.mute} style={styles.cardMeta}>
-                  {`${match.recipe.time} · ${match.recipe.difficulty} · ${match.haveCount} z ${match.totalCount} składników`}
-                </AppText>
-                {usesLine && (
-                  <AppText variant="caption" color={colors.mute} style={styles.usesLine}>
-                    {usesLine}
+          {results.map((match) => {
+            const usesLine = usesExpiringSoonLine(match, products);
+            return (
+              <Pressable
+                key={match.recipe.id}
+                style={styles.card}
+                onPress={() => navigation.navigate('RecipeDetail', { recipeId: match.recipe.id, from: 'generator' })}
+              >
+                <RecipeThumb imageUrl={match.recipe.imageUrl} iconSize={26} style={styles.thumb} />
+                <View style={styles.cardBody}>
+                  <AppText style={styles.cardTitle}>{match.recipe.title}</AppText>
+                  <AppText variant="meta" color={colors.textMuted} style={styles.cardMeta}>
+                    {`${match.recipe.time} · ${recipeLabel(match.recipe.difficulty)} · ${match.haveCount} z ${match.totalCount} składników`}
                   </AppText>
-                )}
-              </View>
-              <Badge label={`${match.matchPercent}%`} variant="match" style={styles.badge} />
-            </Pressable>
-          );
-        })}
-      </View>
+                  {usesLine && (
+                    <AppText variant="caption" color={colors.textMuted} style={styles.usesLine}>
+                      {usesLine}
+                    </AppText>
+                  )}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
+      {moreMessage && (
+        <AppText variant="caption" color={colors.textMuted} style={styles.moreMessage}>
+          {moreMessage}
+        </AppText>
+      )}
+      <Button
+        label={loadingMore ? 'Generuję…' : 'Generuj więcej'}
+        variant="outline"
+        disabled={loadingMore}
+        onPress={handleMore}
+        style={styles.regenerate}
+      />
     </ScrollView>
   );
 }
@@ -109,7 +140,7 @@ export function RecipeResultsScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: screenPaddingHorizontal,
@@ -139,6 +170,12 @@ const styles = StyleSheet.create({
   banner: {
     marginTop: spacing.space4,
   },
+  regenerate: {
+    marginTop: spacing.space4,
+  },
+  moreMessage: {
+    marginTop: spacing.space4,
+  },
   list: {
     marginTop: spacing.space5,
     gap: spacing.space3,
@@ -147,9 +184,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.space3,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: radius.xl,
     padding: 13,
   },
@@ -157,7 +194,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 14,
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.primarySubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -167,7 +204,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontFamily: fontFamily.outfitSemiBold,
     fontSize: 15.5,
-    color: colors.ink,
+    color: colors.text,
   },
   cardMeta: {
     marginTop: 4,
@@ -176,8 +213,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12,
     lineHeight: 16,
-  },
-  badge: {
-    alignSelf: 'flex-start',
   },
 });

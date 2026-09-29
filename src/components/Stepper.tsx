@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 9,
-    backgroundColor: colors.line,
+    backgroundColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -53,12 +53,12 @@ const styles = StyleSheet.create({
   sign: {
     fontFamily: fontFamily.outfitMedium,
     fontSize: 16,
-    color: colors.ink,
+    color: colors.text,
   },
   value: {
     fontFamily: fontFamily.plexMonoRegular,
     fontSize: 12.5,
-    color: colors.ink,
+    color: colors.text,
     minWidth: 44,
     textAlign: 'center',
   },

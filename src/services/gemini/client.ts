@@ -1,7 +1,20 @@
 import { CATEGORIES, UNITS } from '../../constants/fridge';
+import { GEMINI_MODELS, GEMINI_REQUEST_TIMEOUT_MS, GEMINI_TOTAL_TIMEOUT_MS } from '../../constants/gemini';
+import { API_URL, PROXY_RATE_LIMIT_MARKER } from '../../constants/api';
 import { GeminiRecognizedItem } from './types';
+import { isModelExhaustedToday, markModelExhaustedToday, isModelUnavailable, markModelUnavailable } from './quota';
 
-export type GeminiErrorCode = 'NO_API_KEY' | 'QUOTA_EXCEEDED' | 'NETWORK' | 'HTTP' | 'PARSE';
+export type GeminiErrorCode =
+  | 'NOT_CONFIGURED'
+  | 'QUOTA_EXCEEDED'
+  | 'RATE_LIMITED'
+  | 'PROXY_RATE_LIMITED'
+  | 'UNAVAILABLE'
+  | 'MODEL_NOT_FOUND'
+  | 'TIMEOUT'
+  | 'NETWORK'
+  | 'HTTP'
+  | 'PARSE';
 
 export class GeminiError extends Error {
   code: GeminiErrorCode;
@@ -14,34 +27,128 @@ export class GeminiError extends Error {
   }
 }
 
-const MODEL = 'gemini-3.5-flash';
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+async function requestModel(model: string, body: object, timeoutMs: number): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    // Proxy (worker/) dokleja klucz i przekazuje odpowiedź Google bez zmian.
+    response = await fetch(`${API_URL}/gemini/${model}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (e) {
+    if (controller.signal.aborted) throw new GeminiError('TIMEOUT', `${model}: przekroczono czas oczekiwania`);
+    throw new GeminiError('NETWORK', e instanceof Error ? e.message : 'Network error');
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    // Limit na dobę (PerDay) wyłącza model do resetu; limit na minutę tylko każe spróbować inny model.
+    const detail = await response.text().catch(() => '');
+    if (detail.includes(PROXY_RATE_LIMIT_MARKER)) {
+      throw new GeminiError('PROXY_RATE_LIMITED', 'Limit zapytań proxy dla tego urządzenia', 429);
+    }
+    if (detail.includes('PerDay')) {
+      throw new GeminiError('QUOTA_EXCEEDED', `${model}: dzienny limit wyczerpany`, 429);
+    }
+    throw new GeminiError('RATE_LIMITED', `${model}: limit na minutę`, 429);
+  }
+  if (response.status === 404) {
+    throw new GeminiError('MODEL_NOT_FOUND', `${model}: model niedostępny`, 404);
+  }
+  if (response.status >= 500) {
+    throw new GeminiError('UNAVAILABLE', `${model}: HTTP ${response.status}`, response.status);
+  }
+  if (!response.ok) {
+    throw new GeminiError('HTTP', `${model}: HTTP ${response.status}`, response.status);
+  }
+
+  try {
+    const data = await response.json();
+    const parts: { text?: unknown; thought?: boolean }[] = data.candidates[0].content.parts;
+    const part = parts.find((p) => typeof p.text === 'string' && !p.thought);
+    return (part as { text: string }).text;
+  } catch (e) {
+    throw new GeminiError('PARSE', e instanceof Error ? e.message : 'Failed to parse response');
+  }
+}
+
+/**
+ * Wysyła zapytanie do kolejnych modeli z GEMINI_MODELS, aż któryś odpowie. Model z wyczerpanym
+ * dziennym limitem jest pomijany do resetu. Brak sieci, brak adresu proxy i limit proxy przerywają od razu - inny model tego nie naprawi.
+ * Cały łańcuch ma łączny limit czasu, żeby kilka wolnych modeli z rzędu nie trzymało użytkownika minutami.
+ */
+export type FallbackOptions = { requestTimeoutMs?: number; totalTimeoutMs?: number };
+
+const MIN_ATTEMPT_MS = 2000;
+
+export async function generateContentWithFallback(body: object, options: FallbackOptions = {}): Promise<string> {
+  const { requestTimeoutMs = GEMINI_REQUEST_TIMEOUT_MS, totalTimeoutMs = GEMINI_TOTAL_TIMEOUT_MS } = options;
+  const deadline = Date.now() + totalTimeoutMs;
+  if (!API_URL) {
+    throw new GeminiError('NOT_CONFIGURED', 'Brak EXPO_PUBLIC_API_URL w .env');
+  }
+
+  let lastError: GeminiError | null = null;
+  for (const model of GEMINI_MODELS) {
+    const remaining = deadline - Date.now();
+    if (remaining < MIN_ATTEMPT_MS) {
+      lastError = new GeminiError('TIMEOUT', 'Przekroczono łączny czas oczekiwania na modele');
+      break;
+    }
+    if (await isModelUnavailable(model)) continue;
+    if (await isModelExhaustedToday(model)) {
+      lastError ??= new GeminiError('QUOTA_EXCEEDED', `${model}: dzienny limit wyczerpany`, 429);
+      continue;
+    }
+    try {
+      const text = await requestModel(model, body, Math.min(requestTimeoutMs, remaining));
+      return text;
+    } catch (e) {
+      if (!(e instanceof GeminiError) || e.code === 'NETWORK' || e.code === 'PROXY_RATE_LIMITED') throw e;
+      if (e.code === 'QUOTA_EXCEEDED') await markModelExhaustedToday(model);
+      if (e.code === 'MODEL_NOT_FOUND') await markModelUnavailable(model);
+      lastError = e;
+    }
+  }
+  throw lastError ?? new GeminiError('UNAVAILABLE', 'Brak dostępnych modeli Gemini');
+}
 
 const PROMPT =
-  'To jest zdjęcie wnętrza lodówki lub szafki spożywczej. Wypisz każdy widoczny, pojedynczy produkt spożywczy ' +
-  '(nie licz opakowań zbiorczych jako jednej sztuki na produkt w środku). Dla każdego oszacuj ilość i jednostkę. ' +
-  'Jeśli produkt jest częściowo zasłonięty albo nie jesteś pewien co to jest, obniż confidence odpowiednio do ' +
-  'pewności rozpoznania. Oprócz konkretnej nazwy (np. "Ser Gouda", "Jogurt Danone truskawkowy") podaj też ' +
-  'nazwę rodzajową - taką, jakiej użyłby przepis kulinarny wymieniając składnik ogólnie, bez marki ani ' +
-  'konkretnej odmiany (np. "Ser żółty", "Jogurt naturalny"). Jeśli produkt jest już ogólny, nazwa rodzajowa ' +
-  'może być taka sama jak konkretna. Jeśli na zdjęciu nie widać żadnego jedzenia, zwróć pustą tablicę.';
+  'This is a photo of the inside of a fridge or a pantry. List every visible individual food product ' +
+  '(do not count multipacks as one item instead of the products inside). Estimate quantity and unit for each. ' +
+  'If a product is partly hidden or you are unsure what it is, lower confidence accordingly. Besides the ' +
+  'specific name (e.g. "Ser Gouda", "Jogurt Danone truskawkowy") also give a generic name - the one a cooking ' +
+  'recipe would use for the ingredient, without brand or variety (e.g. "Ser żółty", "Jogurt naturalny") - and ' +
+  'the same generic name in English as nameEn. If the product is already generic, the generic name may equal ' +
+  'the specific one. name and genericName are shown to a Polish user, so write them in Polish. ' +
+  'If no food is visible in the photo, return an empty array.';
 
 const RESPONSE_SCHEMA = {
   type: 'ARRAY',
   items: {
     type: 'OBJECT',
     properties: {
-      name: { type: 'STRING', description: 'Konkretna nazwa produktu po polsku, np. "Ser Gouda", "Mleko 3,2%"' },
+      name: { type: 'STRING', description: 'Specific product name in Polish, e.g. "Ser Gouda", "Mleko 3,2%"' },
       genericName: {
         type: 'STRING',
-        description: 'Rodzajowa nazwa tego samego produktu, jakiej użyłby przepis, np. "Ser żółty", "Mleko"',
+        description: 'Generic name of the same product in Polish, as a recipe would use it, e.g. "Ser żółty", "Mleko"',
+      },
+      nameEn: {
+        type: 'STRING',
+        description: 'The same generic name in English, as a recipe would call the ingredient, e.g. "Yellow cheese", "Milk"',
       },
       category: { type: 'STRING', enum: [...CATEGORIES] },
       qty: { type: 'NUMBER' },
       unit: { type: 'STRING', enum: [...UNITS] },
-      confidence: { type: 'NUMBER', description: 'Pewność rozpoznania, liczba całkowita 0-100' },
+      confidence: { type: 'NUMBER', description: 'Recognition confidence, integer 0-100' },
     },
-    required: ['name', 'genericName', 'category', 'qty', 'unit', 'confidence'],
+    required: ['name', 'genericName', 'nameEn', 'category', 'qty', 'unit', 'confidence'],
   },
 };
 
@@ -53,6 +160,8 @@ function isValidItem(item: unknown): item is GeminiRecognizedItem {
     i.name.trim().length > 0 &&
     typeof i.genericName === 'string' &&
     i.genericName.trim().length > 0 &&
+    typeof i.nameEn === 'string' &&
+    i.nameEn.trim().length > 0 &&
     typeof i.category === 'string' &&
     (CATEGORIES as readonly string[]).includes(i.category) &&
     typeof i.qty === 'number' &&
@@ -69,48 +178,19 @@ function stripDataUriPrefix(base64: string): string {
 }
 
 export async function recognizeFridgeImage(base64: string, mimeType: string): Promise<GeminiRecognizedItem[]> {
-  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new GeminiError('NO_API_KEY', 'Brak EXPO_PUBLIC_GEMINI_API_KEY w .env');
-  }
-
   const imageData = stripDataUriPrefix(base64);
 
-  let response: Response;
-  try {
-    response = await fetch(`${ENDPOINT}?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: PROMPT }, { inline_data: { mime_type: mimeType, data: imageData } }],
-          },
-        ],
-        generationConfig: {
-          response_mime_type: 'application/json',
-          response_schema: RESPONSE_SCHEMA,
-        },
-      }),
-    });
-  } catch (e) {
-    throw new GeminiError('NETWORK', e instanceof Error ? e.message : 'Network error');
-  }
-
-  if (response.status === 429) {
-    throw new GeminiError('QUOTA_EXCEEDED', 'Dzienny limit zapytań Gemini wyczerpany', 429);
-  }
-  if (!response.ok) {
-    throw new GeminiError('HTTP', `Gemini HTTP ${response.status}`, response.status);
-  }
-
-  let text: string;
-  try {
-    const data = await response.json();
-    text = data.candidates[0].content.parts[0].text;
-  } catch (e) {
-    throw new GeminiError('PARSE', e instanceof Error ? e.message : 'Failed to parse response');
-  }
+  const text = await generateContentWithFallback({
+    contents: [
+      {
+        parts: [{ text: PROMPT }, { inline_data: { mime_type: mimeType, data: imageData } }],
+      },
+    ],
+    generationConfig: {
+      response_mime_type: 'application/json',
+      response_schema: RESPONSE_SCHEMA,
+    },
+  }, { requestTimeoutMs: 30000, totalTimeoutMs: 60000 });
 
   let parsed: unknown;
   try {

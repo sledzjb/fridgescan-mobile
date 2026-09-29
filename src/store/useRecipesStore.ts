@@ -1,53 +1,59 @@
-import { useEffect } from 'react';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Recipe } from '../data/recipes';
-import { fetchRecipeCatalog, RecipeSource } from '../services/spoonacular/recipesService';
+
+// Wersja 1 zapisywała polskie etykiety filtrów; wersja 2 - angielskie identyfikatory.
+const LEGACY_VALUES: Record<string, string> = {
+  Śniadanie: 'breakfast',
+  Obiad: 'lunch',
+  Kolacja: 'dinner',
+  'Na słodko': 'sweet',
+  'Na słono': 'savory',
+  Proste: 'simple',
+  Złożone: 'complex',
+  Wegańskie: 'vegan',
+  Wegetariańskie: 'vegetarian',
+  Bezglutenowe: 'gluten_free',
+  Standardowa: 'standard',
+};
+const migrateValue = (v: string) => LEGACY_VALUES[v] ?? v;
 
 type RecipesState = {
   recipes: Recipe[];
-  source: RecipeSource | null;
-  lastFetchedAt: number | null;
-  isLoading: boolean;
-  error: string | null;
   hasHydrated: boolean;
-  fetchRecipes: () => Promise<void>;
+  addRecipes: (recipes: Recipe[]) => void;
 };
 
-let inFlightFetch: Promise<void> | null = null;
-
+/** Przepisy wygenerowane w generatorze. Trzymamy je po id, żeby działały szczegóły, ulubione i lista wszystkich przepisów. */
 export const useRecipesStore = create<RecipesState>()(
   persist(
     (set) => ({
       recipes: [],
-      source: null,
-      lastFetchedAt: null,
-      isLoading: false,
-      error: null,
       hasHydrated: false,
-
-      fetchRecipes: () => {
-        if (inFlightFetch) return inFlightFetch;
-
-        set({ isLoading: true, error: null });
-        inFlightFetch = fetchRecipeCatalog()
-          .then(({ recipes, source }) => {
-            set({ recipes, source, lastFetchedAt: Date.now(), isLoading: false });
-          })
-          .catch((e) => {
-            set({ isLoading: false, error: e instanceof Error ? e.message : 'Nieznany błąd' });
-          })
-          .finally(() => {
-            inFlightFetch = null;
-          });
-        return inFlightFetch;
-      },
+      addRecipes: (incoming) =>
+        set((state) => {
+          const ids = new Set(incoming.map((r) => r.id));
+          return { recipes: [...incoming, ...state.recipes.filter((r) => !ids.has(r.id))] };
+        }),
     }),
     {
       name: '@fridgescan/recipes',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ recipes: state.recipes, source: state.source, lastFetchedAt: state.lastFetchedAt }),
+      version: 2,
+      migrate: (persisted) => {
+        const state = persisted as { recipes?: Recipe[] };
+        return {
+          recipes: (state.recipes ?? []).map((r) => ({
+            ...r,
+            meal: migrateValue(r.meal) as Recipe['meal'],
+            taste: migrateValue(r.taste) as Recipe['taste'],
+            difficulty: migrateValue(r.difficulty) as Recipe['difficulty'],
+            diet: migrateValue(r.diet) as Recipe['diet'],
+          })),
+        };
+      },
+      partialize: (state) => ({ recipes: state.recipes }),
       onRehydrateStorage: () => () => {
         useRecipesStore.setState({ hasHydrated: true });
       },
@@ -55,23 +61,8 @@ export const useRecipesStore = create<RecipesState>()(
   )
 );
 
-/**
- * Ekrany przepisów wołają ten hook zamiast czytać useRecipesStore bezpośrednio - dzięki temu
- * pobranie katalogu jest leniwe (dopiero gdy ktoś faktycznie wejdzie na taki ekran), a nie przy
- * każdym starcie aplikacji. fetchRecipes() samo sprawdza świeżość cache'u i limit punktów, więc
- * wywołanie go z wielu ekranów jednocześnie jest bezpieczne i tanie, gdy dane są już aktualne.
- */
 export function useRecipesCatalog() {
   const recipes = useRecipesStore((s) => s.recipes);
-  const source = useRecipesStore((s) => s.source);
-  const isLoading = useRecipesStore((s) => s.isLoading);
   const hasHydrated = useRecipesStore((s) => s.hasHydrated);
-
-  useEffect(() => {
-    if (hasHydrated) {
-      useRecipesStore.getState().fetchRecipes();
-    }
-  }, [hasHydrated]);
-
-  return { recipes, source, isLoading, hasHydrated };
+  return { recipes, hasHydrated };
 }

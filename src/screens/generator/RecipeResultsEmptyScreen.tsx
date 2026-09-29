@@ -2,42 +2,25 @@ import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
-import { AppText, Button, Card, Chip, MockDataBanner } from '../../components';
+import { BackArrow, AppText, Button, Card, Chip } from '../../components';
+import { recipeLabel } from '../../constants/recipeLabels';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
-import { useProductsStore } from '../../store/useProductsStore';
-import { useRecipesCatalog } from '../../store/useRecipesStore';
 import { pluralizePl } from '../../utils/pluralize';
-import { matchAllRecipes, findLoosestFilter } from '../../utils/recipeMatch';
 import { GeneratorStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<GeneratorStackParamList, 'RecipeResultsEmpty'>;
 
 export function RecipeResultsEmptyScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const products = useProductsStore((s) => s.products);
-  const { recipes, source: dataSource } = useRecipesCatalog();
   const { filters } = route.params;
-  const matches = matchAllRecipes(recipes, products);
-  const suggestion = findLoosestFilter(matches, filters);
 
   const openFridge = () => navigation.getParent()?.navigate('FridgeTab' as never);
-
-  const applySuggestion = () => {
-    if (!suggestion) return;
-    const nextFilters = { ...filters, [suggestion.key]: suggestion.suggestedValue };
-    if (suggestion.resultCount > 0) {
-      navigation.replace('RecipeResults', { filters: nextFilters });
-    } else {
-      navigation.replace('RecipeResultsEmpty', { filters: nextFilters });
-    }
-  };
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.space4 }]}>
       <Pressable onPress={() => navigation.goBack()} style={styles.back} hitSlop={8}>
-        <ArrowLeft size={16} color={colors.mute} />
-        <AppText style={styles.backLabel} color={colors.mute}>
+        <BackArrow />
+        <AppText style={styles.backLabel} color={colors.textMuted}>
           Zmień preferencje
         </AppText>
       </Pressable>
@@ -45,42 +28,29 @@ export function RecipeResultsEmptyScreen({ navigation, route }: Props) {
       <AppText variant="h1" style={styles.title}>
         Propozycje
       </AppText>
-      <AppText variant="meta" color={colors.mute} style={styles.meta}>
-        {`0 ${pluralizePl(0, ['propozycja', 'propozycje', 'propozycji'])} · min. 3 składniki z lodówki`}
+      <AppText variant="meta" color={colors.textMuted} style={styles.meta}>
+        {`0 ${pluralizePl(0, ['propozycja', 'propozycje', 'propozycji'])} · `}
       </AppText>
 
       <View style={styles.filterChips}>
-        <Chip label={filters.meal} state="filterActive" />
-        <Chip label={filters.taste} state="filterActive" />
-        <Chip label={filters.difficulty} state="filterActive" />
-        <Chip label={filters.diet} state="filterActive" />
+        <Chip label={recipeLabel(filters.meal)} state="filterActive" />
+        <Chip label={recipeLabel(filters.taste)} state="filterActive" />
+        <Chip label={recipeLabel(filters.difficulty)} state="filterActive" />
+        <Chip label={recipeLabel(filters.diet)} state="filterActive" />
       </View>
-
-      {dataSource === 'mock' && (
-        <View style={styles.banner}>
-          <MockDataBanner />
-        </View>
-      )}
 
       <Card style={styles.card} radius={20} padding={0}>
         <View style={styles.cardInner}>
-          <AppText variant="h3">Nic nie pasuje do wszystkich czterech filtrów</AppText>
-          {suggestion && (
-            <AppText variant="caption" color={colors.mute} style={styles.suggestionText}>
-              {`Najbardziej ograniczające jest »${suggestion.currentValue}« - po jego zdjęciu mamy ${suggestion.resultCount} ${pluralizePl(
-                suggestion.resultCount,
-                ['propozycję', 'propozycje', 'propozycji']
-              )}.`}
-            </AppText>
-          )}
-          {suggestion && (
-            <Button
-              label={`Poluzuj »${suggestion.currentValue}«`}
-              variant="primary"
-              onPress={applySuggestion}
-              style={styles.fullWidth}
-            />
-          )}
+          <AppText variant="h3">Nie udało się wygenerować przepisów</AppText>
+          <AppText variant="caption" color={colors.textMuted} style={styles.suggestionText}>
+            Spróbuj zmienić preferencje albo dodaj więcej produktów do lodówki.
+          </AppText>
+          <Button
+            label="Zmień preferencje"
+            variant="primary"
+            onPress={() => navigation.goBack()}
+            style={styles.fullWidth}
+          />
           <Button label="Dodaj produkty do lodówki" variant="tertiary" onPress={openFridge} />
         </View>
       </Card>
@@ -91,7 +61,7 @@ export function RecipeResultsEmptyScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingHorizontal: screenPaddingHorizontal,
   },
   back: {

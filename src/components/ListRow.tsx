@@ -29,7 +29,7 @@ export function ListRow({
   title,
   titleElement,
   meta,
-  metaColor = colors.mute,
+  metaColor = colors.textMuted,
   metaElement,
   value,
   thumbnailUri,
@@ -61,11 +61,11 @@ export function ListRow({
       </View>
       {rightElement ??
         (value && (
-          <AppText variant="meta" color={colors.mute} style={styles.value}>
+          <AppText variant="meta" color={colors.textMuted} style={styles.value}>
             {value}
           </AppText>
         ))}
-      {chevron && <ChevronRight size={20} color={colors.mute} />}
+      {chevron && <ChevronRight size={20} color={colors.textMuted} />}
     </>
   );
 
@@ -88,7 +88,7 @@ function Thumbnail({ uri, letter, size }: { uri?: string; letter?: string; size:
 
   if (uri && !failed) {
     return (
-      <View style={[styles.thumb, { width: size, height: size, backgroundColor: colors.white }]}>
+      <View style={[styles.thumb, { width: size, height: size, backgroundColor: colors.surface }]}>
         <Image
           source={{ uri }}
           style={{ width: size, height: size }}
@@ -99,8 +99,8 @@ function Thumbnail({ uri, letter, size }: { uri?: string; letter?: string; size:
     );
   }
   return (
-    <View style={[styles.thumb, { width: size, height: size, backgroundColor: colors.primary50 }]}>
-      <AppText style={[styles.thumbLetter, { fontFamily: fontFamily.outfitSemiBold }]} color={colors.primary700}>
+    <View style={[styles.thumb, { width: size, height: size, backgroundColor: colors.primarySubtle }]}>
+      <AppText style={[styles.thumbLetter, { fontFamily: fontFamily.outfitSemiBold }]} color={colors.primary}>
         {(letter ?? '?').charAt(0).toUpperCase()}
       </AppText>
     </View>
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border,
   },
   pressed: {
     opacity: 0.7,

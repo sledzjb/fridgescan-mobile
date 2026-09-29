@@ -12,7 +12,11 @@ import { useFavoritesStore } from './src/store/useFavoritesStore';
 import { useShoppingListStore } from './src/store/useShoppingListStore';
 import { useHistoryStore } from './src/store/useHistoryStore';
 import { useRecipesStore } from './src/store/useRecipesStore';
+import { useGenerationCacheStore } from './src/store/useGenerationCacheStore';
+import { pruneStorage } from './src/store/pruneStorage';
+import { watchFridgeChanges } from './src/store/watchFridgeChanges';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { documentTitle } from './src/navigation/documentTitle';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -24,6 +28,7 @@ function AppContent() {
   const shoppingListHydrated = useShoppingListStore((s) => s.hasHydrated);
   const historyHydrated = useHistoryStore((s) => s.hasHydrated);
   const recipesHydrated = useRecipesStore((s) => s.hasHydrated);
+  const cacheHydrated = useGenerationCacheStore((s) => s.hasHydrated);
   const appReady =
     (fontsLoaded || !!fontError) &&
     ready &&
@@ -31,12 +36,19 @@ function AppContent() {
     favoritesHydrated &&
     shoppingListHydrated &&
     historyHydrated &&
-    recipesHydrated;
+    recipesHydrated &&
+    cacheHydrated;
 
   useEffect(() => {
     if (appReady) {
+      pruneStorage();
       SplashScreen.hideAsync().catch(() => {});
     }
+  }, [appReady]);
+
+  useEffect(() => {
+    if (!appReady) return;
+    return watchFridgeChanges();
   }, [appReady]);
 
   if (!appReady) {
@@ -44,8 +56,8 @@ function AppContent() {
   }
 
   return (
-    <NavigationContainer>
-      <RootNavigator initialRouteName={onboardingDone ? 'MainTabs' : 'Onboarding'} />
+    <NavigationContainer documentTitle={documentTitle}>
+        <RootNavigator initialRouteName={onboardingDone ? 'MainTabs' : 'Onboarding'} />
       <StatusBar style="dark" />
     </NavigationContainer>
   );

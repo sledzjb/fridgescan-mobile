@@ -32,6 +32,10 @@ jobs:
 
       - name: Export static web build
         run: npx expo export -p web
+        # Aplikacja nie ma kluczy API - tylko adres Cloudflare Workera (worker/), który je trzyma.
+        # Adres nie jest tajny, więc to zmienna repozytorium (Settings → Secrets and variables → Actions → Variables).
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

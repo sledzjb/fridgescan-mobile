@@ -14,15 +14,19 @@ export type ShoppingItem = {
 type ShoppingListState = {
   items: ShoppingItem[];
   hasHydrated: boolean;
-  /** Dodaje pozycję, jeśli nie ma jeszcze produktu o tej nazwie (niezaznaczonego) na liście. */
+  /** Dodaje pozycję, jeśli nie ma jej jeszcze (nieodhaczonej) na liście. */
   addIfMissing: (name: string, qty: string, recipeName: string | null) => void;
   addManual: (name: string, qty: string) => void;
   toggleChecked: (id: string) => void;
   removeItem: (id: string) => void;
-  /** Usuwa pozycje odhaczone w poprzedniej wizycie na ekranie. */
+  /** Usuwa odhaczone pozycje (kupione). */
   purgeChecked: () => void;
   clearAll: () => void;
 };
+
+function normalize(name: string): string {
+  return name.trim().toLowerCase();
+}
 
 export const useShoppingListStore = create<ShoppingListState>()(
   persist(
@@ -31,9 +35,8 @@ export const useShoppingListStore = create<ShoppingListState>()(
       hasHydrated: false,
 
       addIfMissing: (name, qty, recipeName) => {
-        const target = name.trim().toLowerCase();
-        const exists = get().items.some((i) => i.name.trim().toLowerCase() === target);
-        if (exists) return;
+        const target = normalize(name);
+        if (get().items.some((i) => !i.checked && normalize(i.name) === target)) return;
         set((state) => ({
           items: [...state.items, { id: generateId(), name, qty, recipeName, checked: false }],
         }));

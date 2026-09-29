@@ -7,12 +7,12 @@ export type AppTextProps = TextProps & {
   color?: string;
 };
 
-export function AppText({ variant = 'body', color = colors.ink, style, ...rest }: AppTextProps) {
+export function AppText({ variant = 'body', color = colors.text, style, ...rest }: AppTextProps) {
   return <Text style={[styles.base, typography[variant], { color }, style]} {...rest} />;
 }
 
 const styles = StyleSheet.create({
   base: {
-    color: colors.ink,
+    color: colors.text,
   },
 });

@@ -23,7 +23,7 @@ export function Input({ variant = 'default', style, containerStyle, onFocus, onB
         setFocused(false);
         onBlur?.(e);
       }}
-      placeholderTextColor={colors.mute}
+      placeholderTextColor={colors.textMuted}
       style={[
         styles.base,
         variant === 'onCard' && styles.onCard,
@@ -37,18 +37,18 @@ export function Input({ variant = 'default', style, containerStyle, onFocus, onB
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 14,
     paddingHorizontal: 15,
     paddingVertical: 15,
     fontFamily: fontFamily.outfitMedium,
     fontSize: 16,
-    color: colors.ink,
+    color: colors.text,
   },
   onCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.borderSubtle,
     borderRadius: radius.md,
     paddingVertical: 13,
     paddingHorizontal: 14,
@@ -59,6 +59,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.plexMonoRegular,
   },
   focused: {
-    borderColor: colors.primary700,
+    borderColor: colors.primary,
   },
 });

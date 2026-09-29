@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
-import { AppText, Button, Input, Chip } from '../../components';
+import { BackArrow, AppText, Button, Input, Chip } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useProductsStore } from '../../store/useProductsStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
@@ -17,7 +16,7 @@ type Props = NativeStackScreenProps<FridgeStackParamList, 'AddProduct'>;
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <AppText variant="kicker" color={colors.primary700} style={styles.sectionTitle}>
+      <AppText variant="kicker" color={colors.primary} style={styles.sectionTitle}>
         {title}
       </AppText>
       {children}
@@ -79,8 +78,8 @@ export function AddProductScreen({ navigation, route }: Props) {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.space4 }]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.back} hitSlop={8}>
-          <ArrowLeft size={16} color={colors.mute} />
-          <AppText style={styles.backLabel} color={colors.mute}>
+          <BackArrow />
+          <AppText style={styles.backLabel} color={colors.textMuted}>
             Lodówka
           </AppText>
         </Pressable>
@@ -123,18 +122,11 @@ export function AddProductScreen({ navigation, route }: Props) {
             onChangeText={handleDateTextChange}
             style={styles.dateInput}
           />
-          <AppText variant="caption" color={colors.mute} style={styles.hint}>
+          <AppText variant="caption" color={colors.textMuted} style={styles.hint}>
             {expiryIso
               ? 'Powiadomimy Cię 2 dni przed tą datą.'
               : 'Bez daty produkt nie trafi do sekcji »Zużyj wkrótce«.'}
           </AppText>
-        </Section>
-
-        <Section title="PODPOWIEDZI AI">
-          <View style={styles.chipRow}>
-            <Chip label="Kategoria: Warzywa?" onPress={() => {}} disabled />
-            <Chip label="Termin: ok. 5 dni?" onPress={() => {}} disabled />
-          </View>
         </Section>
 
         <Button
@@ -152,7 +144,7 @@ export function AddProductScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: screenPaddingHorizontal,

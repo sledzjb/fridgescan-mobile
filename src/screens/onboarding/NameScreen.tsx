@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
-import { AppText, Button, Input } from '../../components';
+import { BackArrow, AppText, Button, Input } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, formPaddingHorizontal } from '../../theme';
 import { useAppState } from '../../store/AppStateContext';
 import { OnboardingStackParamList } from '../../navigation/types';
@@ -29,18 +28,18 @@ export function NameScreen({ navigation }: Props) {
     >
       <View style={{ paddingTop: insets.top + spacing.space4, paddingHorizontal: screenPaddingHorizontal }}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.back}>
-          <ArrowLeft size={18} color={colors.mute} />
+          <BackArrow size={18} />
         </Pressable>
       </View>
 
       <View style={[styles.content, { paddingHorizontal: formPaddingHorizontal }]}>
-        <AppText variant="kicker" color={colors.primary700}>
+        <AppText variant="kicker" color={colors.primary}>
           ZANIM ZACZNIEMY
         </AppText>
         <AppText variant="h2" style={styles.title}>
           Jak się do Ciebie zwracać?
         </AppText>
-        <AppText variant="bodyL" color={colors.mute} style={styles.description}>
+        <AppText variant="bodyL" color={colors.textMuted} style={styles.description}>
           Tylko imię, żeby aplikacja mówiła do Ciebie po ludzku. Zapisujemy je lokalnie - nie zakładamy konta i nic
           nie wysyłamy na serwer.
         </AppText>
@@ -69,7 +68,7 @@ export function NameScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   back: {
     width: 32,

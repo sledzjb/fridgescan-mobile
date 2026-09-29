@@ -15,7 +15,7 @@ type Props = NativeStackScreenProps<FridgeStackParamList, 'EditProduct'>;
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <AppText variant="kicker" color={colors.primary700} style={styles.sectionTitle}>
+      <AppText variant="kicker" color={colors.primary} style={styles.sectionTitle}>
         {title}
       </AppText>
       {children}
@@ -85,7 +85,7 @@ export function EditProductSheet({ navigation, route }: Props) {
       <View style={styles.header}>
         <AppText variant="h3">Edytuj produkt</AppText>
         <Pressable onPress={handleClose} hitSlop={8}>
-          <AppText style={styles.close} color={colors.mute}>
+          <AppText style={styles.close} color={colors.textMuted}>
             Zamknij
           </AppText>
         </Pressable>
@@ -118,7 +118,7 @@ export function EditProductSheet({ navigation, route }: Props) {
         <Button
           label="Usuń"
           variant="outline"
-          textColor={colors.secondary700}
+          textColor={colors.error}
           onPress={handleDelete}
           style={styles.deleteButton}
         />

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Pressable, StyleSheet, Animated, Easing, Linking } from 'react-native';
+import { View, Pressable, StyleSheet, Animated, Easing, Linking, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -7,13 +7,22 @@ import * as ImagePicker from 'expo-image-picker';
 import { ArrowLeft, Camera, Image as ImageIcon, Plus } from 'lucide-react-native';
 import { AppText, Button } from '../../components';
 import { colors, alpha, spacing, radius } from '../../theme';
-import { RecognitionOutcome } from '../../services/mockRecognition';
+import { RecognitionOutcome } from '../../services/gemini/types';
 import { recognizeFridgePhoto, CapturedPhoto } from '../../services/gemini/recognizeFridgePhoto';
 import { ScanStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<ScanStackParamList, 'Scan'>;
 
 const SCAN_LINE_HEIGHT = 260;
+
+const IS_WEB = Platform.OS === 'web';
+
+// W przeglądarce getUserMedia działa tylko w bezpiecznym kontekście (HTTPS/localhost) i nie ma go w części
+// przeglądarek wbudowanych w aplikacje (Messenger, Instagram...). expo-camera w takiej sytuacji po cichu zwraca
+// DENIED bez pokazania pytania o zgodę, więc sprawdzamy to sami i od razu proponujemy aparat systemowy.
+const LIVE_CAMERA_SUPPORTED =
+  !IS_WEB ||
+  (typeof window !== 'undefined' && window.isSecureContext && !!navigator.mediaDevices?.getUserMedia);
 
 export function ScanScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -24,7 +33,7 @@ export function ScanScreen({ navigation }: Props) {
   const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (permission && !permission.granted && permission.canAskAgain) {
+    if (LIVE_CAMERA_SUPPORTED && permission && !permission.granted && permission.canAskAgain) {
       requestPermission();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,9 +113,7 @@ export function ScanScreen({ navigation }: Props) {
     }
   };
 
-  const handleGallery = async () => {
-    if (busy) return;
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5, base64: true });
+  const scanPickedImage = async (result: ImagePicker.ImagePickerResult) => {
     if (result.canceled) return;
     const asset = result.assets[0];
     if (!asset?.base64) {
@@ -116,15 +123,34 @@ export function ScanScreen({ navigation }: Props) {
     runScan({ base64: asset.base64, mimeType: asset.mimeType ?? 'image/jpeg' });
   };
 
-  if (!permission) {
+  // Na mobilnym webie picker musi zostać otwarty synchronicznie w obsłudze kliknięcia, inaczej przeglądarka go zablokuje.
+  const handleGallery = async () => {
+    if (busy) return;
+    scanPickedImage(await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5, base64: true }));
+  };
+
+  const handleSystemCamera = async () => {
+    if (busy) return;
+    try {
+      scanPickedImage(await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.5, base64: true }));
+    } catch {
+      handleOutcome({ type: 'error', code: 'CAPTURE_FAILED' });
+    }
+  };
+
+  if (LIVE_CAMERA_SUPPORTED && !permission) {
     return <View style={styles.screen} />;
   }
 
-  if (!permission.granted) {
+  if (!LIVE_CAMERA_SUPPORTED || !permission?.granted) {
     return (
       <CameraPermissionDeniedContent
         insets={insets}
+        busy={busy}
+        liveCameraSupported={LIVE_CAMERA_SUPPORTED}
+        onRetry={requestPermission}
         onOpenSettings={() => Linking.openSettings()}
+        onSystemCamera={handleSystemCamera}
         onManualAdd={openAddProductInFridge}
         onBack={closeModal}
       />
@@ -142,7 +168,7 @@ export function ScanScreen({ navigation }: Props) {
 
       <View style={[styles.topBar, { top: insets.top + 20 }]}>
         <Pressable onPress={closeModal} style={styles.backCircle} hitSlop={8}>
-          <ArrowLeft size={18} color={colors.white} />
+          <ArrowLeft size={18} color={colors.onCamera} />
         </Pressable>
         <AppText variant="kicker" color={alpha.whiteText60}>
           SKAN LODÓWKI
@@ -162,13 +188,13 @@ export function ScanScreen({ navigation }: Props) {
 
         <View style={[styles.controlsRow, busy && styles.controlsRowDisabled]} pointerEvents={busy ? 'none' : 'auto'}>
           <Pressable style={styles.smallControl} onPress={handleGallery}>
-            <ImageIcon size={20} color={colors.white} />
+            <ImageIcon size={20} color={colors.onCamera} />
           </Pressable>
           <Pressable style={styles.shutterRing} onPress={handleShutter}>
             <View style={styles.shutterInner} />
           </Pressable>
           <Pressable style={styles.smallControl} onPress={openAddProductInFridge}>
-            <Plus size={20} color={colors.white} />
+            <Plus size={20} color={colors.onCamera} />
           </Pressable>
         </View>
         <AppText style={styles.controlsCaption} color={alpha.whiteText50}>
@@ -181,27 +207,40 @@ export function ScanScreen({ navigation }: Props) {
 
 function CameraPermissionDeniedContent({
   insets,
+  busy,
+  liveCameraSupported,
+  onRetry,
   onOpenSettings,
+  onSystemCamera,
   onManualAdd,
   onBack,
 }: {
   insets: EdgeInsets;
+  busy: boolean;
+  liveCameraSupported: boolean;
+  onRetry: () => void;
   onOpenSettings: () => void;
+  onSystemCamera: () => void;
   onManualAdd: () => void;
   onBack: () => void;
 }) {
+  const description = !liveCameraSupported
+    ? 'Ta przeglądarka nie pozwala na podgląd z kamery. Otwórz stronę przez HTTPS w Safari lub Chrome albo zrób zdjęcie aparatem telefonu.'
+    : IS_WEB
+      ? 'Przeglądarka zablokowała dostęp do kamery. Zezwól na kamerę w ustawieniach strony (ikona obok adresu) i spróbuj ponownie albo zrób zdjęcie aparatem telefonu.'
+      : 'Bez kamery nie zrobimy zdjęcia lodówki. Możesz włączyć dostęp w ustawieniach systemowych albo pracować bez skanowania.';
+
   return (
     <View style={[styles.deniedScreen, { paddingTop: insets.top + spacing.space6, paddingBottom: insets.bottom + spacing.space5 }]}>
       <View style={styles.deniedContent}>
         <View style={styles.deniedTile}>
-          <Camera size={28} color={colors.white} />
+          <Camera size={28} color={colors.onCamera} />
         </View>
-        <AppText variant="h1" color={colors.white}>
+        <AppText variant="h1" color={colors.onCamera}>
           Aplikacja nie ma dostępu do kamery
         </AppText>
         <AppText variant="bodyL" color={alpha.whiteText72} style={styles.deniedDescription}>
-          Bez kamery nie zrobimy zdjęcia lodówki. Możesz włączyć dostęp w ustawieniach systemowych albo pracować bez
-          skanowania.
+          {description}
         </AppText>
 
         <View style={styles.deniedCard}>
@@ -209,13 +248,28 @@ function CameraPermissionDeniedContent({
             CO ROBIMY ZE ZDJĘCIEM
           </AppText>
           <AppText variant="body" color={alpha.whiteText72} style={styles.deniedCardText}>
-            Wysyłamy je raz do rozpoznania i usuwamy po 24 godzinach. Nie zapisujemy go w galerii aplikacji.
+            Wysyłamy je do rozpoznania przez Gemini (Google). Aplikacja nie zapisuje go w galerii ani w swoich danych.
           </AppText>
         </View>
       </View>
 
-      <View style={styles.deniedActions}>
-        <Button label="Otwórz ustawienia systemowe" variant="primary" inverted onPress={onOpenSettings} style={styles.fullWidth} />
+      <View style={[styles.deniedActions, busy && styles.controlsRowDisabled]} pointerEvents={busy ? 'none' : 'auto'}>
+        {IS_WEB ? (
+          <>
+            <Button
+              label={busy ? 'Rozpoznaję produkty…' : 'Zrób zdjęcie aparatem telefonu'}
+              variant="primary"
+              inverted
+              onPress={onSystemCamera}
+              style={styles.fullWidth}
+            />
+            {liveCameraSupported && (
+              <Button label="Spróbuj ponownie" variant="outline" inverted onPress={onRetry} style={styles.fullWidth} />
+            )}
+          </>
+        ) : (
+          <Button label="Otwórz ustawienia systemowe" variant="primary" inverted onPress={onOpenSettings} style={styles.fullWidth} />
+        )}
         <Button label="Dodaj produkty ręcznie" variant="outline" inverted onPress={onManualAdd} style={styles.fullWidth} />
         <Button label="Wróć do lodówki" variant="tertiary" textColor={alpha.whiteText60} onPress={onBack} />
       </View>
@@ -226,7 +280,7 @@ function CameraPermissionDeniedContent({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.accent900,
+    backgroundColor: colors.camera,
   },
   topBar: {
     position: 'absolute',
@@ -253,7 +307,7 @@ const styles = StyleSheet.create({
   },
   scanLine: {
     height: 2,
-    backgroundColor: colors.accent400,
+    backgroundColor: colors.cameraAccent,
     marginHorizontal: 20,
   },
   bottomArea: {
@@ -298,7 +352,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: radius.pill,
-    backgroundColor: colors.white,
+    backgroundColor: colors.onCamera,
   },
   controlsCaption: {
     fontSize: 11.5,
@@ -306,7 +360,7 @@ const styles = StyleSheet.create({
   },
   deniedScreen: {
     flex: 1,
-    backgroundColor: colors.accent900,
+    backgroundColor: colors.camera,
     paddingHorizontal: 26,
     justifyContent: 'space-between',
   },

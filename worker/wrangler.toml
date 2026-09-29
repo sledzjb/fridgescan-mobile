@@ -1,0 +1,28 @@
+name = "fridgescan-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+# Originy przeglądarki, które mogą wołać proxy (GitHub Pages + lokalny `expo start --web`).
+[vars]
+ALLOWED_ORIGINS = "https://sledzjb.github.io,http://localhost:8081"
+
+# Limity na adres IP. Gemini: rozpoznanie zdjęcia + generowanie + tłumaczenie nazw to kilka zapytań na akcję.
+[[ratelimits]]
+name = "GEMINI_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 15
+  period = 60
+
+# Zdjęcia Pexels: lista przepisów/lodówki pyta o kilka naraz (wyniki są cache'owane w aplikacji).
+[[ratelimits]]
+name = "PHOTO_LIMITER"
+namespace_id = "1002"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60
+
+# Sekrety (nie w tym pliku): `npx wrangler secret put GEMINI_API_KEY` i `npx wrangler secret put PEXELS_API_KEY`.
+# Lokalnie (`npm run dev`): plik worker/.dev.vars z GEMINI_API_KEY=... i PEXELS_API_KEY=... (w .gitignore).

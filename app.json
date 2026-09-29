@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "fridgescan-scaffold",
-    "slug": "fridgescan-scaffold",
+    "name": "FridgeScan",
+    "slug": "fridgescan",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,10 +11,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#50D494",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundImage": "./assets/android-icon-background.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -42,7 +41,7 @@
       [
         "expo-notifications",
         {
-          "color": "#3B6D11"
+          "color": "#3F5C1C"
         }
       ]
     ]

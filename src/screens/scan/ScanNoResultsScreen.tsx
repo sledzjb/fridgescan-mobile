@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, TriangleAlert } from 'lucide-react-native';
-import { AppText, Button, Card } from '../../components';
+import { TriangleAlert } from 'lucide-react-native';
+import { BackArrow, AppText, Button, Card } from '../../components';
 import { colors, radius, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { ScanStackParamList } from '../../navigation/types';
 
@@ -27,8 +27,8 @@ export function ScanNoResultsScreen({ navigation }: Props) {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.space4 }]}>
       <Pressable onPress={() => navigation.goBack()} style={styles.back} hitSlop={8}>
-        <ArrowLeft size={16} color={colors.mute} />
-        <AppText style={styles.backLabel} color={colors.mute}>
+        <BackArrow />
+        <AppText style={styles.backLabel} color={colors.textMuted}>
           Skanuj ponownie
         </AppText>
       </Pressable>
@@ -36,22 +36,22 @@ export function ScanNoResultsScreen({ navigation }: Props) {
       <Card style={styles.card} radius={20} padding={0}>
         <View style={styles.cardInner}>
           <View style={styles.iconTile}>
-            <TriangleAlert size={24} color={colors.secondary700} />
+            <TriangleAlert size={24} color={colors.onWarning} />
           </View>
           <AppText variant="h3" style={styles.title}>
             Nie rozpoznaliśmy żadnego produktu
           </AppText>
-          <AppText variant="caption" color={colors.mute} style={styles.description}>
+          <AppText variant="caption" color={colors.textMuted} style={styles.description}>
             Zdjęcie było zbyt ciemne albo produkty są zasłonięte. To zdarza się przy zamkniętych szufladach i folii.
           </AppText>
 
           <View style={styles.tips}>
             {TIPS.map((tip, i) => (
               <View key={tip} style={styles.tipRow}>
-                <AppText style={styles.tipNumber} color={colors.primary700}>
+                <AppText style={styles.tipNumber} color={colors.primary}>
                   {String(i + 1).padStart(2, '0')}
                 </AppText>
-                <AppText variant="body" color={colors.inkSoft} style={styles.tipText}>
+                <AppText variant="body" color={colors.textSecondary} style={styles.tipText}>
                   {tip}
                 </AppText>
               </View>
@@ -71,7 +71,7 @@ export function ScanNoResultsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingHorizontal: screenPaddingHorizontal,
   },
   back: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: radius.lg,
-    backgroundColor: colors.secondary50,
+    backgroundColor: colors.warning,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.space4,

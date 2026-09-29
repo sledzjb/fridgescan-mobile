@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, ViewStyle, StyleProp, GestureResponderEvent } from 'react-native';
+import { View, Pressable, StyleSheet, ViewStyle, StyleProp, GestureResponderEvent } from 'react-native';
 import { AppText } from './AppText';
 import { colors, alpha, radius, ctaRadius, spacing } from '../theme';
 
@@ -29,7 +29,8 @@ export function Button({
   style,
 }: ButtonProps) {
   const { container, text } = getVariantStyle(variant, disabled, inverted);
-  const resolvedColor = disabled ? text.color : textColor ?? text.color;
+  const { color: variantColor, ...textStyle } = text;
+  const resolvedColor = disabled ? variantColor : textColor ?? variantColor;
 
   return (
     <Pressable
@@ -43,7 +44,7 @@ export function Button({
       ]}
     >
       {icon}
-      <AppText variant="button" color={resolvedColor as string} style={[text, icon ? styles.textWithIcon : undefined]}>
+      <AppText variant="button" color={resolvedColor} style={[textStyle, icon ? styles.textWithIcon : undefined]}>
         {label}
       </AppText>
     </Pressable>
@@ -53,8 +54,8 @@ export function Button({
 function getVariantStyle(variant: ButtonVariant, disabled: boolean, inverted: boolean) {
   if (disabled) {
     return {
-      container: { backgroundColor: colors.line, borderRadius: ctaRadius, paddingVertical: 16 },
-      text: { color: colors.mute },
+      container: { backgroundColor: colors.borderSubtle, borderRadius: ctaRadius, paddingVertical: 16 },
+      text: { color: colors.textMuted },
     };
   }
 
@@ -62,22 +63,22 @@ function getVariantStyle(variant: ButtonVariant, disabled: boolean, inverted: bo
     case 'primary':
       return inverted
         ? {
-            container: { backgroundColor: colors.white, borderRadius: ctaRadius, paddingVertical: 16 },
-            text: { color: colors.accent900 },
+            container: { backgroundColor: colors.onCamera, borderRadius: ctaRadius, paddingVertical: 16 },
+            text: { color: colors.camera },
           }
         : {
-            container: { backgroundColor: colors.primary700, borderRadius: ctaRadius, paddingVertical: 16 },
-            text: { color: colors.white },
+            container: { backgroundColor: colors.primary, borderRadius: ctaRadius, paddingVertical: 16 },
+            text: { color: colors.onPrimary },
           };
     case 'secondary':
       return {
-        container: { backgroundColor: colors.ink, borderRadius: ctaRadius, paddingVertical: 16 },
-        text: { color: colors.white },
+        container: { backgroundColor: colors.primarySoft, borderRadius: ctaRadius, paddingVertical: 16 },
+        text: { color: colors.onPrimarySoft },
       };
     case 'accentAction':
       return {
-        container: { backgroundColor: colors.secondary500, borderRadius: radius.lg, paddingVertical: 15 },
-        text: { color: colors.white, fontSize: 15 },
+        container: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 15 },
+        text: { color: colors.onPrimary, fontSize: 15 },
       };
     case 'outline':
       return inverted
@@ -89,7 +90,7 @@ function getVariantStyle(variant: ButtonVariant, disabled: boolean, inverted: bo
               borderWidth: 1,
               borderColor: alpha.whiteOutlineBorder,
             },
-            text: { color: colors.white, fontSize: 14.5 },
+            text: { color: colors.onCamera, fontSize: 14.5 },
           }
         : {
             container: {
@@ -97,14 +98,14 @@ function getVariantStyle(variant: ButtonVariant, disabled: boolean, inverted: bo
               borderRadius: radius.lg,
               paddingVertical: 15,
               borderWidth: 1,
-              borderColor: colors.line,
+              borderColor: colors.border,
             },
-            text: { color: colors.ink, fontSize: 14.5 },
+            text: { color: colors.text, fontSize: 14.5 },
           };
     case 'tertiary':
       return {
         container: { backgroundColor: 'transparent', paddingVertical: 14, minHeight: 44 },
-        text: { color: colors.primary700, fontSize: 14.5 },
+        text: { color: colors.primary, fontSize: 14.5 },
       };
   }
 }

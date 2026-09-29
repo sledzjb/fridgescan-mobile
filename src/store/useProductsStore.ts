@@ -10,6 +10,8 @@ export type Product = {
   /** Rodzajowa nazwa (np. "Ser żółty" dla "Ser Gouda") - ustawiana przy rozpoznaniu ze zdjęcia,
    * używana przy dopasowywaniu do składników przepisów. Brak przy ręcznie dodanych produktach. */
   genericName?: string;
+  /** Angielska nazwa rodzajowa (np. "Yellow cheese") - jedyna nazwa produktu wysyłana do API przepisów. Uzupełniana przy rozpoznaniu ze zdjęcia albo leniwie tłumaczeniem PL->EN. */
+  nameEn?: string;
   category: string;
   qty: number;
   unit: string;
@@ -45,7 +47,12 @@ export const useProductsStore = create<ProductsState>()(
 
       updateProduct: (id, patch) => {
         set((state) => ({
-          products: state.products.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+          products: state.products.map((p) => {
+            if (p.id !== id) return p;
+            // Po zmianie nazwy stare tłumaczenie jest nieaktualne - zostanie odświeżone przy generowaniu.
+            const renamed = ('name' in patch || 'genericName' in patch) && !('nameEn' in patch);
+            return { ...p, ...patch, ...(renamed ? { nameEn: undefined } : {}) };
+          }),
         }));
       },
 

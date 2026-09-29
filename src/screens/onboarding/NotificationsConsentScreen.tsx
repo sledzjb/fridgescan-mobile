@@ -63,20 +63,20 @@ export function NotificationsConsentScreen({ navigation }: Props) {
     <View style={[styles.screen, { paddingTop: insets.top + spacing.space6, paddingBottom: insets.bottom + spacing.space5 }]}>
       <View style={styles.content}>
         <View style={styles.tile}>
-          <Bell size={26} color={colors.primary700} />
+          <Bell size={26} color={colors.primary} />
         </View>
         <AppText variant="h1">Mamy Ci przypominać, co się psuje?</AppText>
-        <AppText variant="bodyL" color={colors.mute} style={styles.description}>
+        <AppText variant="bodyL" color={colors.textMuted} style={styles.description}>
           Jedno powiadomienie, gdy coś w lodówce zbliża się do końca terminu. Bez tego łatwo przeoczyć jogurt.
         </AppText>
 
         <Card style={styles.card} padding={spacing.space4}>
           {ROWS.map((row, i) => (
             <View key={row.label} style={[styles.row, i > 0 && styles.rowSpacing]}>
-              <Check size={17} color={colors.primary700} />
+              <Check size={17} color={colors.primary} />
               <View style={styles.rowText}>
                 <AppText style={styles.rowLabel}>{row.label}</AppText>
-                <AppText variant="caption" color={colors.mute}>
+                <AppText variant="caption" color={colors.textMuted}>
                   {row.description}
                 </AppText>
               </View>
@@ -84,7 +84,7 @@ export function NotificationsConsentScreen({ navigation }: Props) {
           ))}
         </Card>
 
-        <AppText variant="caption" color={colors.mute} style={styles.note}>
+        <AppText variant="caption" color={colors.textMuted} style={styles.note}>
           Każde z nich wyłączysz osobno w Ustawieniach.
         </AppText>
       </View>
@@ -100,7 +100,7 @@ export function NotificationsConsentScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingHorizontal: 26,
   },
   content: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 19,
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.primarySubtle,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.space5,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: fontFamily.outfitSemiBold,
     fontSize: 14,
-    color: colors.ink,
+    color: colors.text,
   },
   note: {
     marginTop: spacing.space3,

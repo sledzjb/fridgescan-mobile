@@ -21,7 +21,7 @@ export function Toggle({ value, onValueChange, disabled }: ToggleProps) {
 
   const trackColor = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [colors.line, colors.primary700],
+    outputRange: [colors.border, colors.primary],
   });
   const knobLeft = anim.interpolate({
     inputRange: [0, 1],
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: radius.pill,
-    backgroundColor: colors.white,
+    backgroundColor: colors.toggleKnob,
   },
   disabled: {
     opacity: 0.5,

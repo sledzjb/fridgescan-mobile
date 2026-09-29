@@ -6,13 +6,12 @@ import { AppText, Input, Chip, Card } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { Recipe } from '../../data/recipes';
 import { useRecipesCatalog } from '../../store/useRecipesStore';
+import { useSearchHistoryStore } from '../../store/useSearchHistoryStore';
 import { pluralizePl } from '../../utils/pluralize';
 import { RecipeListRow } from './RecipeListRow';
 import { RecipesStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<RecipesStackParamList, 'SearchRecipes'>;
-
-const RECENT_SEARCHES = ['jajka', 'szpinak', 'na słodko', '20 min'];
 
 function matchesQuery(recipe: Recipe, query: string): boolean {
   const q = query.trim().toLowerCase();
@@ -24,6 +23,8 @@ function matchesQuery(recipe: Recipe, query: string): boolean {
 export function SearchRecipesScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { recipes } = useRecipesCatalog();
+  const recentSearches = useSearchHistoryStore((s) => s.queries);
+  const addSearchQuery = useSearchHistoryStore((s) => s.addQuery);
   const [query, setQuery] = useState('');
 
   const trimmed = query.trim();
@@ -35,18 +36,20 @@ export function SearchRecipesScreen({ navigation }: Props) {
         <Input
           value={query}
           onChangeText={setQuery}
+          onSubmitEditing={() => addSearchQuery(query)}
+          returnKeyType="search"
           placeholder="Szukaj przepisu lub składnika"
           autoFocus
           style={styles.input}
         />
         <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
-          <AppText style={styles.cancel} color={colors.mute}>
+          <AppText style={styles.cancel} color={colors.textMuted}>
             Anuluj
           </AppText>
         </Pressable>
       </View>
 
-      <AppText variant="meta" color={colors.mute} style={styles.counter}>
+      <AppText variant="meta" color={colors.textMuted} style={styles.counter}>
         {trimmed
           ? `${results.length} ${pluralizePl(results.length, ['wynik', 'wyniki', 'wyników'])} dla »${trimmed}«`
           : 'Wpisz nazwę przepisu lub składnika'}
@@ -54,13 +57,17 @@ export function SearchRecipesScreen({ navigation }: Props) {
 
       {!trimmed && (
         <View style={styles.recentSection}>
-          <AppText variant="kicker" color={colors.mute} style={styles.recentTitle}>
+          <AppText variant="kicker" color={colors.textMuted} style={styles.recentTitle}>
             OSTATNIO SZUKANE
           </AppText>
           <View style={styles.recentChips}>
-            {RECENT_SEARCHES.map((s) => (
-              <Chip key={s} label={s} onPress={() => setQuery(s)} />
-            ))}
+            {recentSearches.length === 0 ? (
+              <AppText variant="caption" color={colors.textMuted}>
+                Historia wyszukiwania jest pusta.
+              </AppText>
+            ) : (
+              recentSearches.map((s) => <Chip key={s} label={s} onPress={() => setQuery(s)} />)
+            )}
           </View>
         </View>
       )}
@@ -69,8 +76,10 @@ export function SearchRecipesScreen({ navigation }: Props) {
         <Card style={styles.emptyCard} radius={16} padding={0}>
           <View style={styles.emptyCardInner}>
             <AppText variant="h3">Brak wyników</AppText>
-            <AppText variant="caption" color={colors.mute} style={styles.emptyDescription}>
-              Sprawdź pisownię albo szukaj po składniku, nie po nazwie potrawy.
+            <AppText variant="caption" color={colors.textMuted} style={styles.emptyDescription}>
+              {recipes.length === 0
+                ? 'Nie masz jeszcze żadnych przepisów. Wygeneruj je w zakładce Generator.'
+                : 'Sprawdź pisownię albo szukaj po składniku, nie po nazwie potrawy.'}
             </AppText>
           </View>
         </Card>
@@ -82,7 +91,10 @@ export function SearchRecipesScreen({ navigation }: Props) {
             <RecipeListRow
               key={recipe.id}
               recipe={recipe}
-              onPress={() => navigation.navigate('RecipeDetail', { recipeId: recipe.id, from: 'recipes' })}
+              onPress={() => {
+                addSearchQuery(trimmed);
+                navigation.navigate('RecipeDetail', { recipeId: recipe.id, from: 'recipes' });
+              }}
             />
           ))}
         </ScrollView>
@@ -94,7 +106,7 @@ export function SearchRecipesScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingHorizontal: screenPaddingHorizontal,
   },
   topRow: {
@@ -104,7 +116,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    borderColor: colors.primary700,
+    borderColor: colors.primary,
   },
   cancel: {
     fontFamily: fontFamily.outfitMedium,
@@ -139,9 +151,9 @@ const styles = StyleSheet.create({
   },
   resultsList: {
     marginTop: spacing.space5,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 18,
   },
 });

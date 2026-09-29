@@ -7,6 +7,7 @@ import { AppText } from '../../components';
 import { colors, spacing, screenPaddingHorizontal, fontFamily } from '../../theme';
 import { useShoppingListStore } from '../../store/useShoppingListStore';
 import { pluralizePl } from '../../utils/pluralize';
+import { SUPPORTS_NOTIFICATIONS } from '../../services/notifications';
 import { MoreStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<MoreStackParamList, 'More'>;
@@ -18,7 +19,10 @@ export function MoreScreen({ navigation }: Props) {
   const rows: { label: string; description: string; onPress?: () => void }[] = [
     {
       label: 'Lista zakupów',
-      description: `${missingCount} ${pluralizePl(missingCount, ['brakujący składnik', 'brakujące składniki', 'brakujących składników'])} z przepisów`,
+      description:
+        missingCount > 0
+          ? `${missingCount} ${pluralizePl(missingCount, ['pozycja', 'pozycje', 'pozycji'])} do kupienia`
+          : 'Pusta - dodawaj brakujące składniki z przepisów',
       onPress: () => navigation.navigate('ShoppingList'),
     },
     {
@@ -28,12 +32,12 @@ export function MoreScreen({ navigation }: Props) {
     },
     {
       label: 'Ustawienia i konto',
-      description: 'Zgody RODO, powiadomienia, Premium',
+      description: SUPPORTS_NOTIFICATIONS ? 'Imię, powiadomienia, dane na telefonie' : 'Imię, dane na telefonie',
       onPress: () => navigation.navigate('Settings'),
     },
     {
-      label: 'Pomoc i kontakt',
-      description: 'FAQ, zgłoś błędne rozpoznanie',
+      label: 'Pomoc',
+      description: 'FAQ i informacje o danych',
       onPress: () => navigation.navigate('Help'),
     },
   ];
@@ -53,11 +57,11 @@ export function MoreScreen({ navigation }: Props) {
           >
             <View style={styles.rowText}>
               <AppText style={styles.rowLabel}>{row.label}</AppText>
-              <AppText variant="caption" color={colors.mute} style={styles.rowDescription}>
+              <AppText variant="caption" color={colors.textMuted} style={styles.rowDescription}>
                 {row.description}
               </AppText>
             </View>
-            <ChevronRight size={20} color="rgba(44,44,42,.35)" />
+            <ChevronRight size={20} color={colors.textMuted} />
           </Pressable>
         ))}
       </View>
@@ -68,16 +72,16 @@ export function MoreScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingHorizontal: screenPaddingHorizontal,
   },
   title: {
     marginBottom: spacing.space5,
   },
   list: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 16,
     paddingHorizontal: 15,
   },
@@ -88,7 +92,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
   },
   rowText: {
     flex: 1,
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: fontFamily.outfitSemiBold,
     fontSize: 15,
-    color: colors.ink,
+    color: colors.text,
   },
   rowDescription: {
     marginTop: 2,

@@ -1,5 +1,5 @@
 import { Product } from '../store/useProductsStore';
-import { RecognizedItem } from '../services/mockRecognition';
+import { RecognizedItem } from '../services/gemini/types';
 import { GeneratorFilters } from '../utils/recipeMatch';
 
 export type RecipeDetailSource = 'generator' | 'recipes' | 'favorites';
@@ -28,7 +28,7 @@ export type ScanStackParamList = {
 export type GeneratorStackParamList = {
   Generator: undefined;
   GeneratorLoading: { filters: GeneratorFilters };
-  RecipeResults: { filters: GeneratorFilters };
+  RecipeResults: { filters: GeneratorFilters; recipeIds: number[] };
   RecipeResultsEmpty: { filters: GeneratorFilters };
   RecipeDetail: { recipeId: number; from: RecipeDetailSource };
   UpdateFridgeSheet: { recipeId: number; from: RecipeDetailSource };
@@ -52,8 +52,6 @@ export type MoreStackParamList = {
   History: undefined;
   Settings: undefined;
   ShoppingList: undefined;
-  PrivacyPolicy: undefined;
-  TermsOfService: undefined;
   Help: undefined;
 };
 
